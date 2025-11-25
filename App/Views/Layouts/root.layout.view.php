@@ -43,7 +43,7 @@
         <?php } else { ?>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= App\Configuration::LOGIN_URL ?>">Logg in</a>
+                    <a class="nav-link" href="<?= App\Configuration::LOGIN_URL ?>">Log in</a>
                 </li>
             </ul>
         <?php } ?>
