@@ -3,37 +3,38 @@
 /** @var \Framework\Support\LinkGenerator $link */
 ?>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col mt-5">
-            <div class="text-center">
-                <h2>Vaííčko MVC FW</h2>
-                <h3>Version <?= App\Configuration::FW_VERSION ?></h3>
-                <img src="<?= $link->asset('images/vaiicko_logo.png') ?>" alt="Framework Logo">
-                <p>
-                    Congratulations, you have successfully installed and run the framework
-                    <strong>Vaííčko</strong> <?= App\Configuration::FW_VERSION ?>!<br>
-                    We hope that you will create a great application using this framework.<br>
-                </p>
-                <p>
-                    This simple framework was created for teaching purposes and to better understand how the MVC
-                    architecture works.<br>
-                    It is intended for students of the subject <em>web application development</em>, but not only
-                    for them.
-                </p>
+<!-- HERO SEKCIA -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 gold-text">CROWN BARBER</h1>
+        <p class="lead gold-subtitle">Královský prístup k vášmu štýlu</p>
+        <a href="#sluzby" class="btn btn-gold btn-lg mt-4">Pozrieť služby</a>
+    </div>
+</section>
+
+<!-- SLUZBY -->
+<section id="sluzby" class="dark-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 gold-text">NAŠE SLUŽBY</h2>
+                <p class="lead text-light">Ponúkame špičkové služby pre moderných mužov</p>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
+                <div class="service-card dark-card mb-4">
+                    <h3 class="gold-text">Pánske strihanie</h3>
+                    <p class="text-light">Profesionálne strihanie vlasov podľa vášho štýlu s použitím najmodernejších techník</p>
+                    <span class="price gold-text">15€</span>
+                </div>
+
+                <div class="service-card dark-card mb-4">
+                    <h3 class="gold-text">Úprava brady</h3>
+                    <p class="text-light">Tvarovanie a úprava brady podľa aktuálnych trendov a vášho osobitného štýlu</p>
+                    <span class="price gold-text">10€</span>
+                </div>
             </div>
         </div>
     </div>
-    <div class="row mt-3">
-        <div class="col text-center">
-            <h4>Authors</h4>
-            <div>
-                <a href="mailto:Patrik.Hrkut@fri.uniza.sk">doc. Ing. Patrik Hrkút, PhD.</a><br>
-                <a href="mailto:Michal.Duracik@fri.uniza.sk">Ing. Michal Ďuračík, PhD.</a><br>
-                <a href="mailto:Matej.Mesko@fri.uniza.sk">Ing. Matej Meško, PhD.</a><br><br>
-                &copy; 2020-<?= date('Y') ?> University of Žilina, Faculty of Management Science and Informatics,
-                Department of Software Technologies
-            </div>
-        </div>
-    </div>
-</div>
+</section>

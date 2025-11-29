@@ -19,7 +19,7 @@ class Configuration
     /**
      * Application name.
      */
-    public const APP_NAME = 'Vaííčko MVC FW';
+    public const APP_NAME = 'CrownBarber';
 
     /**
      * Version of the framework.
@@ -48,7 +48,7 @@ class Configuration
     /**
      * Flag to determine whether to display all SQL queries after the application output for debugging purposes.
      */
-    public const SHOW_SQL_QUERY = false;
+    public const SHOW_SQL_QUERY = true;
 
     /**
      * Class name for the database naming conventions implementation. This should adhere to the IDbConvention interface.

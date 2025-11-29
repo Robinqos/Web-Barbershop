@@ -23,30 +23,52 @@
     <script src="<?= $link->asset('js/script.js') ?>"></script>
 </head>
 <body>
-<nav class="navbar navbar-expand-sm bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="<?= $link->url('home.index') ?>">
-            <img src="<?= $link->asset('images/vaiicko_logo.png') ?>" title="<?= App\Configuration::APP_NAME ?>" alt="Framework Logo">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <!-- Navbar logo -->
+        <a class="navbar-brand-me-4" href="<?= $link->url('home.index') ?>">     <!-- margin end-->
+            <img src="<?= $link->asset('images/crownbarber_logo.png') ?>" title="<?= App\Configuration::APP_NAME ?>" alt="CrownBarber Logo">
         </a>
-        <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="<?= $link->url('home.contact') ?>">Contact</a>
-            </li>
-        </ul>
-        <?php if ($user->isLoggedIn()) { ?>
-            <span class="navbar-text">Logged in user: <b><?= $user->getName() ?></b></span>
-            <ul class="navbar-nav ms-auto">
+
+        <!-- Mobilne tlacidlo -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menu -->
+        <div class="collapse navbar-collapse" id="navbarMenu">
+            <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= $link->url('auth.logout') ?>">Log out</a>
+                    <a class="nav-link" href="<?= $link->url('home.index') ?>">Domov</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#sluzby">Služby</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#barberi">Barberi</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#rezervacia">Rezervácia</a>
                 </li>
             </ul>
-        <?php } else { ?>
+
+            <!-- Prihlasenie vpravo-->
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= App\Configuration::LOGIN_URL ?>">Log in</a>
-                </li>
+                <?php if ($user->isLoggedIn()) { ?>
+                    <li class="nav-item">
+                        <span class="navbar-text me-3">Prihlásený: <b><?= $user->getName() ?></b></span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= $link->url('auth.logout') ?>">Odhlásiť</a>
+                    </li>
+                <?php } else { ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= $link->url('auth.login') ?>">Prihlásiť</a>
+                    </li>
+                <?php } ?>
             </ul>
-        <?php } ?>
+        </div>
     </div>
 </nav>
 <div class="container-fluid mt-3">
