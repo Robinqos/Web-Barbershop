@@ -70,4 +70,12 @@ class AuthController extends BaseController
         $this->app->getAuthenticator()->logout();
         return $this->html();
     }
+
+    //NAUCNA METODA S PETKOM
+    public function register(Request $request): Response
+    {
+        //krokuj si to
+        echo "Test debug...\n";
+        return $this->html();
+    }
 }

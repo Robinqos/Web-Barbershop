@@ -28,10 +28,15 @@ $view->setLayout('auth');
                             <input name="password" type="password" id="password" class="form-control"
                                    placeholder="Password" required>
                         </div>
+
+
                         <div class="text-center">
                             <button class="btn btn-primary" type="submit" name="submit">Log in
                             </button>
+                            <button onclick="window.location.href = '<?= $link->url("auth.register")?>'" class="btn btn-secondary" type="button" name="submit">Register
+                            </button>
                         </div>
+
                     </form>
                 </div>
             </div>
