@@ -8,7 +8,7 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <div class="cb-service-card">
+            <div class="cb-dark-card">
                 <h2 class="cb-gold-text text-center mb-4">📅 Rezervácia termínu</h2>
 
                 <?php if (isset($error)): ?>

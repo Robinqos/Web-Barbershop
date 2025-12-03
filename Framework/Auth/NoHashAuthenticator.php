@@ -2,16 +2,17 @@
 
 namespace Framework\Auth;
 
+use App\Models\User;
 use Framework\Core\App;
 use Framework\Core\IIdentity;
 
 /**
- * Class DummyAuthenticator
+ * Class NoHashAuthenticator
  * A basic implementation of user authentication using hardcoded credentials.
  *
  * @package App\Auth
  */
-class DummyAuthenticator extends SessionAuthenticator
+class NoHashAuthenticator extends SessionAuthenticator
 {
     // Hardcoded username for authentication
     public const LOGIN = "admin";
@@ -26,10 +27,17 @@ class DummyAuthenticator extends SessionAuthenticator
         parent::__construct($app);
     }
 
-    protected function authenticate(string $username, string $password): ?IIdentity
+    //kazdemu bere z databazy
+    protected function authenticate(string $email, string $password): ?IIdentity
     {
-        if ($username === self::LOGIN && password_verify($password, self::PASSWORD_HASH)) {
-            return new DummyUser(self::USERNAME);
+        $user = User::getAll('`email` LIKE ?', [$email]);
+        if(count($user) === 1) {
+            /*if ($email === self::LOGIN && password_verify($password, self::PASSWORD_HASH)) {
+                return new DummyUser(self::USERNAME);
+            }*/
+            if($password === $user[0]->getPassword()) {
+                return $user[0];
+            }
         }
         return null;
     }

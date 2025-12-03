@@ -31,19 +31,19 @@ abstract class SessionAuthenticator implements IAuthenticator
      * 
      * This method must be implemented by subclasses to provide the actual authentication logic.
      *
-     * @param string $username User's login attempt.
+     * @param string $email User's login attempt.
      * @param string $password User's password attempt.
      * @return IIdentity|null Implementations should return an IIdentity on successful authentication, or null on failure.
      */
-    protected abstract function authenticate(string $username, string $password): ?IIdentity;
+    protected abstract function authenticate(string $email, string $password): ?IIdentity;
 
     /**
      * Logs in a user with the specified credentials.
      * @inheritdoc
      */
-    public function login(string $username, string $password): bool
+    public function login(string $email, string $password): bool
     {
-        $identity = $this->authenticate($username, $password);
+        $identity = $this->authenticate($email, $password);
         if ($identity instanceof IIdentity) {
             // Store the entire User object in the session
             $this->session->set(Configuration::IDENTITY_SESSION_KEY, $identity);

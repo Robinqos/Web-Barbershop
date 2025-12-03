@@ -1,0 +1,1 @@
+//hned sa kuka na kontroly napriklad hesiel

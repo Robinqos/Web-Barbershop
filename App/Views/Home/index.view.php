@@ -25,7 +25,7 @@
         <?php foreach (\App\Models\Service::getAll() as $service): ?>    <!-- foreach do listu ich da -->
         <div class="row justify-content-center">
             <div class="col-md-10 col-lg-8">
-                <div class="cb-service-card mb-4">
+                <div class="cb-dark-card mb-4">
                     <h3 class="cb-gold-text"><?= $service->getTitle() ?></h3>
                     <p class="cb-text-muted"><?= $service->getDescription() ?></p>
                     <span class="cb-price"><?= $service->getPrice() ?>€</span>
@@ -33,21 +33,5 @@
             </div>
         </div>
         <?php endforeach; ?>
-
-        <!--<div class="row justify-content-center">
-            <div class="col-md-10 col-lg-8">
-                <div class="cb-service-card mb-4">
-                    <h3 class="cb-gold-text">Pansky strih</h3>
-                    <p class="cb-text-muted">Profesionálne strihanie vlasov podľa vášho štýlu</p>
-                    <span class="cb-price">15€</span>
-                </div>
-
-                <div class="cb-service-card mb-4">
-                    <h3 class="cb-gold-text">Úprava brady</h3>
-                    <p class="cb-text-muted">Tvarovanie a úprava brady podľa aktuálnych trendov a vášho osobitného štýlu</p>
-                    <span class="cb-price">10€</span>
-                </div>
-            </div>
-        </div>-->
     </div>
 </section>

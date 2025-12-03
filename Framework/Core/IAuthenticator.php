@@ -21,11 +21,11 @@ interface IAuthenticator
      * This method attempts to authenticate a user using the provided login and password. It returns true if the
      * authentication is successful, and false otherwise.
      *
-     * @param string $username The user's login identifier (e.g., username or email).
+     * @param string $email The user's login identifier (e.g., username or email).
      * @param string $password The user's password.
      * @return bool True if authentication is successful; false otherwise.
      */
-    public function login(string $username, string $password): bool;
+    public function login(string $email, string $password): bool;
 
     /**
      * Logs out the currently authenticated user.

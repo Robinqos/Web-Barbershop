@@ -9,30 +9,17 @@ $view->setLayout('auth');
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-sm-10 col-md-8 col-lg-6">
-            <div class="card my-5 shadow">
+            <div class="cb-dark-card my-5 shadow">
                 <div class="card-body p-4">
-                    <h2 class="card-title text-center mb-4">📝 Vytvoriť nový účet</h2>
-
-                    <?php if (isset($success)): ?>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <?= htmlspecialchars($success) ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (isset($error)): ?>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <?= htmlspecialchars($error) ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
+                    <h2 class="cb-gold-text text-center mb-4">Vytvoriť nový účet</h2>
 
                     <form method="post" action="<?= $link->url("auth.register") ?>">
                         <div class="row g-3">
                             <!-- Osobné údaje -->
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="full_name" class="form-label">Meno a priezvisko</label>
+                                    <label for="full_name" class="form-label cb-gold-text">
+                                        Meno a priezvisko </label>
                                     <input type="text"
                                            name="full_name"
                                            id="full_name"
@@ -43,18 +30,21 @@ $view->setLayout('auth');
 
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="phone" class="form-label">Telefónne číslo</label>
+                                    <label for="phone" class="form-label cb-gold-text">
+                                        Telefónne číslo <span class="text-danger">*</span></label>
                                     <input type="tel"
                                            name="phone"
                                            id="phone"
                                            class="form-control"
-                                           placeholder="0918 123 456">
+                                           placeholder="+421 918 123 456"
+                                           value = "<?= $_POST['phone'] ?? '' ?>"
+                                           required>
                                 </div>
                             </div>
 
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="email" class="form-label">
+                                    <label for="email" class="form-label cb-gold-text">
                                         E-mail <span class="text-danger">*</span>
                                     </label>
                                     <input type="email"
@@ -62,13 +52,14 @@ $view->setLayout('auth');
                                            id="email"
                                            class="form-control"
                                            placeholder="vas@email.sk"
-                                           required>                        <!-- required = povinne a vie ze tam ma byt @ -->
+                                           value = "<?= $_POST['email'] ?? '' ?>"
+                                           required>         <!-- required = povinne a vie ze tam ma byt @, MUSI TO BYT POSLEDNE toto je kontrola na strane servera -->
                                 </div>
                             </div>
 
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="password" class="form-label">
+                                    <label for="password" class="form-label cb-gold-text">
                                         Heslo <span class="text-danger">*</span>
                                     </label>
                                     <input type="password"
@@ -76,7 +67,9 @@ $view->setLayout('auth');
                                            id="password"
                                            class="form-control"
                                            placeholder="vaše heslo"
+                                           value = "<?= $_POST['password'] ?? '' ?>"
                                            required>
+                                    <span><?= $errors['password'] ?? '' ?></span>
                                 </div>
                             </div>
 
@@ -95,6 +88,20 @@ $view->setLayout('auth');
                                 </div>
                             </div>
 
+                            <?php if (isset($success)): ?>
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <?= htmlspecialchars($success) ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (isset($error)): ?>
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <?= htmlspecialchars($error) ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            <?php endif; ?>
+
                             <!-- Tlačidlá -->
                             <div class="col-12">
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-between">
@@ -105,16 +112,6 @@ $view->setLayout('auth');
                                         Vytvoriť účet
                                     </button>
                                 </div>
-                            </div>
-
-                            <!-- Link na login pre tých, čo už účet majú -->
-                            <div class="col-12 text-center mt-4 pt-3 border-top">
-                                <p class="mb-0">
-                                    Už máte účet?
-                                    <a href="<?= $link->url("auth.login") ?>" class="text-decoration-none fw-bold">
-                                        Prihláste sa tu
-                                    </a>
-                                </p>
                             </div>
                         </div>
                     </form>

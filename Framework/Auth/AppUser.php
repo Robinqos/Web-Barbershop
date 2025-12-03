@@ -51,9 +51,9 @@ class AppUser
      *
      * @return string|null The name of the user if logged in; null otherwise.
      */
-    public function getName(): ?string
+    public function getEmail(): ?string
     {
-        return $this->identity?->getName();
+        return $this->identity?->getEmail();
     }
 
     /**

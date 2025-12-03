@@ -19,5 +19,5 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 INSERT INTO `users` (`id`, `fullname`, `email`, `password`, `phone`, `permissions`, `created_at`, `last_login`) VALUES
-                                                                                                                    (1,	'admin',	'admin@gmail.com',	'admin',	'+421918165642',	3,	'2025-12-01 20:00:00',	'2025-12-01 20:00:00'),
-                                                                                                                    (2,	'Matka Rakovanova',	'rkvnv7@gmail.com',	'12345',	'+421900000000',	1,	'2025-12-01 19:02:17',	NULL);
+                                                                                                                    (1,	'admin',	'admin@gmail.com',	'admin',	'+421918165642',	2,	'2025-12-01 20:00:00',	'2025-12-01 20:00:00'),
+                                                                                                                    (2,	'Matka Rakovanova',	'rkvnv7@gmail.com',	'12345',	'+421900000000',	0,	'2025-12-01 19:02:17',	NULL);

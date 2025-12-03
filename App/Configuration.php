@@ -2,7 +2,7 @@
 
 namespace App;
 
-use Framework\Auth\DummyAuthenticator;
+use Framework\Auth\NoHashAuthenticator;
 use Framework\Core\ErrorHandler;
 use Framework\DB\DefaultConventions;
 
@@ -48,7 +48,7 @@ class Configuration
     /**
      * Flag to determine whether to display all SQL queries after the application output for debugging purposes.
      */
-    public const SHOW_SQL_QUERY = true;
+    public const SHOW_SQL_QUERY = false;
 
     /**
      * Class name for the database naming conventions implementation. This should adhere to the IDbConvention interface.
@@ -66,7 +66,7 @@ class Configuration
      * Class name for the authenticator. This class must implement the IAuthenticator interface. Comment out this line
      * if authentication is not required in the application.
      */
-    public const AUTH_CLASS = DummyAuthenticator::class;
+    public const AUTH_CLASS = NoHashAuthenticator::class;
 
     /**
      * Class name for the error handler. This class must implement the IHandleError interface.

@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
+use Cassandra\Date;
+use Framework\Core\IIdentity;
 use Framework\Core\Model;
+use MongoDB\BSON\Timestamp;
 
-class User extends Model
+class User extends Model implements IIdentity
 {
     protected int $id;
-    protected string $fullname;
+    protected ?string $fullname;
     protected string $email;
     protected string $password;
     protected string $phone;
     protected int $permissions;
-    protected  $created_at;
+    protected string $created_at;
     protected  $last_login;
 
     public function getId(): int
@@ -20,12 +23,12 @@ class User extends Model
         return $this->id;
     }
 
-    public function getFullname(): string
+    public function getFullname(): ?string
     {
         return $this->fullname;
     }
 
-    public function setFullname(string $fullname): void
+    public function setFullname(?string $fullname): void
     {
         $this->fullname = $fullname;
     }
@@ -73,9 +76,14 @@ class User extends Model
     /**
      * @return mixed
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): string
     {
         return $this->created_at;
+    }
+
+    public function setCreatedAt(string $date): void
+    {
+        $this->created_at = $date;
     }
 
     /**
@@ -94,8 +102,6 @@ class User extends Model
     {
         $this->last_login = $last_login;
     }
-
-
 
 
 }

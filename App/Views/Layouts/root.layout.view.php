@@ -33,7 +33,7 @@
 </head>
 <body class="d-flex flex-column min-vh-100 cb-dark-theme">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container-fluid">
         <!-- Navbar logo -->
         <a class="navbar-brand ms-0 ms-lg-3" href="<?= $link->url('home.index') ?>">     <!-- margin end-->
@@ -56,10 +56,12 @@
                     <a class="nav-link" href="<?= $link->url('home.index') ?>">Domov</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#sluzby">Služby</a>
+                    <!-- Pridaj link na homepage so sekciou #sluzby -->
+                    <a class="nav-link" href="<?= $link->url('home.index') ?>#sluzby">Služby</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#barberi">Barberi</a>
+                    <!-- Pridaj link na homepage so sekciou #barberi -->
+                    <a class="nav-link" href="<?= $link->url('home.index') ?>#barberi">Barberi</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="<?= $link->url('reservation.create') ?>">Rezervácia</a>
@@ -67,10 +69,10 @@
             </ul>
 
             <!-- Prihlasenie vpravo-->
-            <ul class="navbar-nav ms-lg-auto me-lg-3 text-center text-lg-end"> <!-- margin start & end -->
+            <ul class="navbar-nav ms-lg-auto me-lg-3 text-lg-end"> <!-- margin start & end -->
                 <?php if ($user->isLoggedIn()) { ?>
                     <li class="nav-item">
-                        <span class="navbar-text me-3">Prihlásený: <b><?= htmlspecialchars($user->getName()) ?></b></span>
+                        <span class="navbar-text me-3">Prihlásený: <b><?= htmlspecialchars($user->getEmail()) ?></b></span>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $link->url('user.index') ?>">Môj profil</a>
@@ -114,7 +116,7 @@
         </div>
         <div class="row mt-4 pt-3 border-top border-secondary">
             <div class="col text-center">
-                <p class="cb-text-muted mb-0">&copy; 2025 Crown Barber. Všetky práva vyhradené.</p>
+                <p class="cb-text-muted mb-0">&copy; 2025 Crown Barber</p>
             </div>
         </div>
     </div>
