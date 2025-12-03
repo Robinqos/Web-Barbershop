@@ -84,7 +84,7 @@ class AuthController extends BaseController
 
         $formData = $this->app->getRequest()->post();
         if(isset($formData['submit'])) {
-            //todo: validacie
+            //sprav este validacie
             // VALIDÁCIA HESLA
             if(empty($formData['password'])) {
                 $errors['password'] = "Heslo je povinné.";
@@ -105,7 +105,7 @@ class AuthController extends BaseController
             $user->setPassword($formData['password']);
             $user->setPhone($formData['phone']);
             $user->setPermissions(0); //defaultne nastavenie pre noveho usera
-            //todo:nastavenie datumov!
+            //sprav este nastavenie datumov!
             $user->save();
             return $this->redirect($this->url("auth.login"));
         }
