@@ -17,6 +17,4 @@ class ReservationController extends BaseController
     {
         return $this->html();
     }
-
-
 }

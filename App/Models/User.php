@@ -15,8 +15,8 @@ class User extends Model implements IIdentity
     protected string $password;
     protected string $phone;
     protected int $permissions;
-    protected string $created_at;
-    protected  $last_login;
+    protected ?string $created_at;
+    protected ?string $last_login;
 
     public function getId(): int
     {
@@ -76,7 +76,7 @@ class User extends Model implements IIdentity
     /**
      * @return mixed
      */
-    public function getCreatedAt(): string
+    public function getCreatedAt(): ?string
     {
         return $this->created_at;
     }
@@ -86,14 +86,11 @@ class User extends Model implements IIdentity
         $this->created_at = $date;
     }
 
-    /**
-     * @param mixed $created_at
-     */
-
-    public function getLastLogin()
+    public function getLastLogin() : ?string
     {
         return $this->last_login;
     }
+
 
     /**
      * @param mixed $last_login
@@ -103,5 +100,9 @@ class User extends Model implements IIdentity
         $this->last_login = $last_login;
     }
 
-
+    public static function getOneByEmail(string $email): ?User
+    {
+        $users = self::getAll('email = ?', [$email]);
+        return !empty($users) ? $users[0] : null;
+    }
 }

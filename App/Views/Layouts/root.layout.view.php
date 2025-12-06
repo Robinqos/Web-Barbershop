@@ -56,11 +56,9 @@
                     <a class="nav-link" href="<?= $link->url('home.index') ?>">Domov</a>
                 </li>
                 <li class="nav-item">
-                    <!-- Pridaj link na homepage so sekciou #sluzby -->
                     <a class="nav-link" href="<?= $link->url('home.index') ?>#sluzby">Služby</a>
                 </li>
                 <li class="nav-item">
-                    <!-- Pridaj link na homepage so sekciou #barberi -->
                     <a class="nav-link" href="<?= $link->url('home.index') ?>#barberi">Barberi</a>
                 </li>
                 <li class="nav-item">
@@ -68,14 +66,14 @@
                 </li>
             </ul>
 
-            <!-- Prihlasenie vpravo-->
-            <ul class="navbar-nav ms-lg-auto me-lg-3 text-lg-end"> <!-- margin start & end -->
+            <!-- Prihlasenie vpravo -->
+            <ul class="navbar-nav ms-auto">
                 <?php if ($user->isLoggedIn()) { ?>
-                    <li class="nav-item">
-                        <span class="navbar-text me-3">Prihlásený: <b><?= htmlspecialchars($user->getEmail()) ?></b></span>
+                    <li class="nav-item d-none d-md-block">
+                        <span class="nav-link disabled">Prihlásený: <b><?= htmlspecialchars($user->getEmail()) ?></b></span>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $link->url('user.index') ?>">Môj profil</a>
+                        <a class="nav-link" href="<?= $link->url('auth.index') ?>">Môj profil</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $link->url('auth.logout') ?>">Odhlásiť</a>
@@ -94,7 +92,7 @@
         <?= $contentHTML ?>
     </div>
 </div>
-<!-- PÄTA -->
+<!-- Pata -->
 <footer class="cb-footer-section mt-auto">
     <div class="container">
         <div class="row">

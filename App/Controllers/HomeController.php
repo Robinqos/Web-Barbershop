@@ -55,3 +55,4 @@ class HomeController extends BaseController
         return $this->html();
     }
 }
+

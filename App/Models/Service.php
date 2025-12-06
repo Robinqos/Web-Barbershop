@@ -59,7 +59,4 @@ class Service extends Model
     {
         $this->description = $description;
     }
-
-
-
 }
