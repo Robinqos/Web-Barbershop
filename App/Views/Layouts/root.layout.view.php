@@ -14,8 +14,10 @@
     <link rel="apple-touch-icon" sizes="180x180" href="<?= $link->asset('favicons/appletouchicon-180x180.png') ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="<?= $link->asset('favicons/faviconlogo-32x32.png') ?>">
     <link rel="icon" type="image/png" sizes="16x16" href="<?= $link->asset('favicons/faviconlogo-16x16.png') ?>">
-    <link rel="icon" type="image/png" sizes="192x192" href="<?= $link->asset('favicons/faviconlogochrome-192x192.png') ?>">
-    <link rel="icon" type="image/png" sizes="512x512" href="<?= $link->asset('favicons/faviconlogochrome-512x512.png') ?>">
+    <link rel="icon" type="image/png" sizes="192x192"
+          href="<?= $link->asset('favicons/faviconlogochrome-192x192.png') ?>">
+    <link rel="icon" type="image/png" sizes="512x512"
+          href="<?= $link->asset('favicons/faviconlogochrome-512x512.png') ?>">
     <link rel="shortcut icon" href="<?= $link->asset('favicons/faviconlogo-16x16.png') ?>">
 
     <!--Bootstrap -->
@@ -70,7 +72,8 @@
             <ul class="navbar-nav ms-auto">
                 <?php if ($user->isLoggedIn()) { ?>
                     <li class="nav-item d-none d-md-block">
-                        <span class="nav-link disabled">Prihlásený: <b><?= htmlspecialchars($user->getEmail()) ?></b></span>
+                        <span class="nav-link disabled">
+                            Prihlásený: <b><?= htmlspecialchars($user->getEmail()) ?></b></span>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $link->url('auth.index') ?>">Môj profil</a>

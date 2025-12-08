@@ -15,8 +15,10 @@
     <link rel="apple-touch-icon" sizes="180x180" href="<?= $link->asset('favicons/appletouchicon-180x180.png') ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="<?= $link->asset('favicons/faviconlogo-32x32.png') ?>">
     <link rel="icon" type="image/png" sizes="16x16" href="<?= $link->asset('favicons/faviconlogo-16x16.png') ?>">
-    <link rel="icon" type="image/png" sizes="192x192" href="<?= $link->asset('favicons/faviconlogochrome-192x192.png') ?>">
-    <link rel="icon" type="image/png" sizes="512x512" href="<?= $link->asset('favicons/faviconlogochrome-512x512.png') ?>">
+    <link rel="icon" type="image/png" sizes="192x192"
+          href="<?= $link->asset('favicons/faviconlogochrome-192x192.png') ?>">
+    <link rel="icon" type="image/png" sizes="512x512"
+          href="<?= $link->asset('favicons/faviconlogochrome-512x512.png') ?>">
     <link rel="shortcut icon" href="<?= $link->asset('favicons/faviconlogo-16x16.png') ?>">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"

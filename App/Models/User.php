@@ -73,9 +73,6 @@ class User extends Model implements IIdentity
         $this->permissions = $permissions;
     }
 
-    /**
-     * @return mixed
-     */
     public function getCreatedAt(): ?string
     {
         return $this->created_at;
@@ -86,15 +83,11 @@ class User extends Model implements IIdentity
         $this->created_at = $date;
     }
 
-    public function getLastLogin() : ?string
+    public function getLastLogin(): ?string
     {
         return $this->last_login;
     }
 
-
-    /**
-     * @param mixed $last_login
-     */
     public function setLastLogin($last_login): void
     {
         $this->last_login = $last_login;

@@ -1,11 +1,11 @@
 <?php
+
 /** @var \App\Models\User $user */
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var \Framework\Support\View $view */
 
 $view->setLayout('auth');
 ?>
-
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-sm-10 col-md-8 col-lg-6">
@@ -17,8 +17,9 @@ $view->setLayout('auth');
                         <h5 class="text-danger fw-bold mb-3">
                             <i class="bi bi-exclamation-circle me-2"></i>Konečné varovanie
                         </h5>
-                        <p class="text-light mb-3">Naozaj chcete zmazať svoj účet? <strong class="text-danger">Táto akcia je nevratná!</strong></p>
-
+                        <p class="text-light mb-3">Naozaj chcete zmazať svoj účet?
+                            <strong class="text-danger">
+                                Táto akcia je nevratná!</strong></p>
                         <div class="d-inline-block text-start">
                             <ul class="text-light ps-3 mb-0">
                                 <li class="mb-1">Všetky vaše údaje budú vymazané</li>
@@ -29,7 +30,8 @@ $view->setLayout('auth');
                     </div>
 
                     <div class="text-center">
-                        <p class="mb-4">Ste si istý, že chcete zmazať účet <strong><?= htmlspecialchars($user->getEmail()) ?></strong>?</p>
+                        <p class="mb-4">Ste si istý, že chcete zmazať účet
+                            <strong><?= htmlspecialchars($user->getEmail()) ?></strong>?</p>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                             <a href="<?= $link->url("auth.index") ?>" class="btn btn-outline-secondary me-3">

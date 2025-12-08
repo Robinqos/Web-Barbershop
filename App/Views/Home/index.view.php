@@ -22,7 +22,8 @@
             </div>
         </div>
 
-        <?php foreach (\App\Models\Service::getAll() as $service) : ?>    <!-- foreach do listu ich da -->
+        <?php
+        foreach (\App\Models\Service::getAll() as $service) : ?>    <!-- foreach do listu ich da -->
         <div class="row justify-content-center">
             <div class="col-md-10 col-lg-8">
                 <div class="cb-dark-card mb-4">

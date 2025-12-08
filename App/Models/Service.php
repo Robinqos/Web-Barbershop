@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-
-
 use Framework\Core\Model;
 
 class Service extends Model

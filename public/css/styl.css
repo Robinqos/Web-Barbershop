@@ -1,9 +1,8 @@
 /*
  * CROWN BARBER CUSTOM CSS
- * PREFIX 'cb-' aby sme sa vyhli kolíziám s Bootstrapom
  */
 
-/* 1. PREMENNÉ - BEZ KOLÍZIE S BOOTSTRAPOM */
+/* 1. PREMENNÉ */
 :root {
     --cb-bg: #0a0a0a;
     --cb-text: #ffffff;
@@ -15,14 +14,14 @@
     --cb-footer-gradient: linear-gradient(135deg, #0a0a0a, #1a1a1a);
 }
 
-/* 2. TMAVÁ TÉMA - BEZ KOLÍZIE S BOOTSTRAP .bg-dark */
+/* 2. TMAVÁ TÉMA */
 .cb-dark-theme {
     background-color: var(--cb-bg) ;
     color: var(--cb-text);
     font-family: Arial, sans-serif;
 }
 
-/* 3. HERO SEKCIA S OBRÁZKOM */
+/* 3. HERO SEKCIA  */
 .cb-hero-section {
     background: url("../images/herosection.png") no-repeat center center/cover;
     min-height: 80vh;
@@ -34,7 +33,7 @@
     border-top: none;
 }
 
-/* Overlay pre lepšiu čitateľnosť - OPRAVENÝ */
+/* Overlay pre citatelnost */
 .cb-hero-section::before {
     content: '';
     position: absolute;
@@ -51,7 +50,7 @@
     z-index: 1;
 }
 
-/* 4. VLASTNÉ TEXTY - ŽIADNE KOLÍZIE */
+/* 4. TEXTY */
 .cb-gold-text {
     color: var(--cb-gold);
     font-weight: bold;
@@ -65,7 +64,7 @@
     color: var(--cb-muted);
 }
 
-/* 5. VLASTNÉ TLAČIDLO - BEZ KOLÍZIE S .btn-warning */
+/* 5. TLACIDLO */
 .cb-btn-gold {
     background-color: var(--cb-gold);
     color: var(--cb-bg);
@@ -84,7 +83,7 @@
     box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
 }
 
-/* 6. TMAVÁ SEKCIE - BEZ KOLÍZIE */
+/* 6. TMAVÁ SEKCIA*/
 .cb-dark-section {
     background-color: var(--cb-bg);
 }
@@ -106,7 +105,7 @@
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* 8. CENY - VLASTNÁ TRIEDA */
+/* 8. CENY */
 .cb-price {
     display: block;
     font-size: 1.5rem;
@@ -115,7 +114,7 @@
     margin-top: 1rem;
 }
 
-/* 9. PÄTA - BEZ KOLÍZIE S .footer */
+/* 9. PATA */
 .cb-footer-section {
     background: var(--cb-footer-gradient);
     border-top: 1px solid var(--cb-card-border);
@@ -128,18 +127,14 @@
     margin-bottom: 1rem;
 }
 
-/* 10. NAVBAR LOGO - BEZ INLINE ŠTÝLOV */
+/* 10. NAVBAR LOGO  */
 .cb-navbar-logo {
     max-height: 50px;
     width: auto;
 }
 
-/* 11. CONTENT WRAPPER */
-.cb-content-wrapper {
-    width: 100%;
-}
 
-/* 12. RESPONZÍVNOSŤ - DOPLNENÁ O CHÝBAJÚCE VLASTNOSTI */
+/* 12. RESPONZIVNOST */
 
 /* Extra malé zariadenia (mobily, < 576px) */
 @media (max-width: 575px) {
@@ -166,7 +161,7 @@
     }
 }
 
-/* Stredné zariadenia (tablety, 576px - 768px) */
+/* Stredne zariadenia (tablety, 576px - 768px) */
 @media (min-width: 576px) and (max-width: 767px) {
     .cb-hero-section {
         min-height: 70vh;
@@ -181,7 +176,7 @@
     }
 }
 
-/* Veľké zariadenia (desktop, 1200px+) */
+/* Velke zariadenia (desktop, 1200px+) */
 @media (min-width: 1200px) {
     .cb-hero-section {
         min-height: 90vh;

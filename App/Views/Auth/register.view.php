@@ -13,11 +13,11 @@ $view->setLayout('auth');
                 <div class="card-body p-4">
                     <h2 class="cb-gold-text text-center mb-4">Vytvoriť nový účet</h2>
 
-                    <?php if (!empty($errors)): ?>
+                    <?php if (!empty($errors)) : ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <strong>Opravte nasledujúce chyby:</strong>
                             <ul class="mb-0">
-                                <?php foreach ($errors as $field => $error): ?>
+                                <?php foreach ($errors as $field => $error) : ?>
                                     <li><?= htmlspecialchars($error) ?></li>
                                 <?php endforeach; ?>
                             </ul>
@@ -38,9 +38,10 @@ $view->setLayout('auth');
                                            class="form-control <?= isset($errors['full_name']) ? 'is-invalid' : '' ?>"
                                            placeholder="Zadajte vaše meno a priezvisko"
                                            value="<?= htmlspecialchars($formData['full_name'] ?? '') ?>">
-                                    <?php if (isset($errors['full_name'])): ?>
-                                        <div class="invalid-feedback"><?= htmlspecialchars($errors['full_name']) ?></div>
-                                    <?php else: ?>
+                                    <?php if (isset($errors['full_name'])) : ?>
+                                        <div class="invalid-feedback">
+                                            <?= htmlspecialchars($errors['full_name']) ?></div>
+                                    <?php else : ?>
                                         <div id="full_name_error" class="invalid-feedback"></div>
                                     <?php endif; ?>
                                 </div>
@@ -54,12 +55,12 @@ $view->setLayout('auth');
                                            name="phone"
                                            id="phone"
                                            class="form-control <?= isset($errors['phone']) ? 'is-invalid' : '' ?>"
-                                           placeholder="+421 918 123 456"
+                                           placeholder="+421 XXX XXX XXX"
                                            value="<?= htmlspecialchars($formData['phone'] ?? '') ?>"
                                            required>
-                                    <?php if (isset($errors['phone'])): ?>
+                                    <?php if (isset($errors['phone'])) : ?>
                                         <div class="invalid-feedback"><?= htmlspecialchars($errors['phone']) ?></div>
-                                    <?php else: ?>
+                                    <?php else : ?>
                                         <div id="phone_error" class="invalid-feedback"></div>
                                     <?php endif; ?>
                                 </div>
@@ -77,9 +78,9 @@ $view->setLayout('auth');
                                            placeholder="vas@email.sk"
                                            value="<?= htmlspecialchars($formData['email'] ?? '') ?>"
                                            required>
-                                    <?php if (isset($errors['email'])): ?>
+                                    <?php if (isset($errors['email'])) : ?>
                                         <div class="invalid-feedback"><?= htmlspecialchars($errors['email']) ?></div>
-                                    <?php else: ?>
+                                    <?php else : ?>
                                         <div id="email_error" class="invalid-feedback"></div>
                                     <?php endif; ?>
                                 </div>
@@ -94,12 +95,12 @@ $view->setLayout('auth');
                                            name="password"
                                            id="password"
                                            class="form-control <?= isset($errors['password']) ? 'is-invalid' : '' ?>"
-                                           placeholder="vaše heslo"
+                                           placeholder="Vaše heslo"
                                            value="<?= htmlspecialchars($formData['password'] ?? '') ?>"
                                            required>
-                                    <?php if (isset($errors['password'])): ?>
+                                    <?php if (isset($errors['password'])) : ?>
                                         <div class="invalid-feedback"><?= htmlspecialchars($errors['password']) ?></div>
-                                    <?php else: ?>
+                                    <?php else : ?>
                                         <div id="password_error" class="invalid-feedback"></div>
                                     <?php endif; ?>
                                 </div>
@@ -113,13 +114,15 @@ $view->setLayout('auth');
                                     <input type="password"
                                            name="password_confirm"
                                            id="password_confirm"
-                                           class="form-control <?= isset($errors['password_confirm']) ? 'is-invalid' : '' ?>"
-                                           placeholder="zopakujte heslo"
+                                           class="form-control
+                                           <?= isset($errors['password_confirm']) ? 'is-invalid' : '' ?>"
+                                           placeholder="Zopakujte heslo"
                                            value="<?= htmlspecialchars($formData['password_confirm'] ?? '') ?>"
                                            required>
-                                    <?php if (isset($errors['password_confirm'])): ?>
-                                        <div class="invalid-feedback"><?= htmlspecialchars($errors['password_confirm']) ?></div>
-                                    <?php else: ?>
+                                    <?php if (isset($errors['password_confirm'])) : ?>
+                                        <div class="invalid-feedback">
+                                            <?= htmlspecialchars($errors['password_confirm']) ?></div>
+                                    <?php else : ?>
                                         <div id="password_confirm_error" class="invalid-feedback"></div>
                                     <?php endif; ?>
                                 </div>
@@ -138,9 +141,9 @@ $view->setLayout('auth');
                                         <a>Súhlasím so spracovaním osobných údajov</a>
                                         <span class="text-danger">*</span>
                                     </label>
-                                    <?php if (isset($errors['terms'])): ?>
+                                    <?php if (isset($errors['terms'])) : ?>
                                         <div class="invalid-feedback"><?= htmlspecialchars($errors['terms']) ?></div>
-                                    <?php else: ?>
+                                    <?php else : ?>
                                         <div id="terms_error" class="invalid-feedback"></div>
                                     <?php endif; ?>
                                 </div>

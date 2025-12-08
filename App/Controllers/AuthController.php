@@ -55,7 +55,6 @@ class AuthController extends BaseController
         if ($request->hasValue('submit')) {
             $logged = $this->app->getAuthenticator()->login($request->value('email'), $request->value('password'));
             if ($logged) {
-                // AKTUALIZÁCIA LAST_LOGIN
                 $user = $this->app->getAuthenticator()->getUser();
                 date_default_timezone_set('Europe/Bratislava');
                 $user->setLastLogin(date('Y-m-d H:i:s'));
@@ -63,7 +62,6 @@ class AuthController extends BaseController
                 return $this->redirect($this->url("auth.index"));
             }
         }
-
         $message = $logged === false ? 'Bad email or password' : null;
         return $this->html(compact("message"));
     }
@@ -79,10 +77,10 @@ class AuthController extends BaseController
     public function logout(Request $request): Response
     {
         $this->app->getAuthenticator()->logout();
-        return $this->html();
+        return $this->redirect($this->url("auth.login"));
     }
 
-    //NAUCNA METODA S PETKOM
+    //NAUCNA METODA
     //MOJ SERVER JE CONTROLLER
     //najprv rob kontroly na servery
     public function register(Request $request): Response
@@ -93,7 +91,6 @@ class AuthController extends BaseController
         if (isset($formData['submit'])) {
             $errors = [];
 
-            // Validácia jednotlivých polí pomocou helper metód
             if ($error = $this->validateFullName($formData['full_name'] ?? null, false)) {
                 $errors['full_name'] = $error;
             }
@@ -110,11 +107,9 @@ class AuthController extends BaseController
                 $errors['password'] = $error;
             }
 
-            if ($error = $this->validatePasswordConfirm(
-                $formData['password'] ?? null,
+            if ($error = $this->validatePasswordConfirm($formData['password'] ?? null,
                 $formData['password_confirm'] ?? null,
-                true
-            )) {
+                true)) {
                 $errors['password_confirm'] = $error;
             }
 
@@ -122,7 +117,6 @@ class AuthController extends BaseController
                 $errors['terms'] = $error;
             }
 
-            // Ak sú chyby, vrátiť ich
             if (!empty($errors)) {
                 return $this->html([
                     'errors' => $errors,
@@ -130,10 +124,8 @@ class AuthController extends BaseController
                 ]);
             }
 
-            // Všetky validácie prešli, vytvoriť používateľa
             $user = new User();
 
-            // Nastaviť meno (ak je vyplnené)
             if (!empty($formData['full_name'])) {
                 $user->setFullname(trim($formData['full_name']));
             }
@@ -143,15 +135,12 @@ class AuthController extends BaseController
             $user->setPhone(trim($formData['phone']));
             $user->setPermissions(0);
 
-            // Nastavenie časového pásma a dátumov
             date_default_timezone_set('Europe/Bratislava');
             $user->setCreatedAt(date('Y-m-d H:i:s'));
             $user->setLastLogin(null);
 
-            // Uložiť používateľa
             $user->save();
 
-            // Presmerovať na login
             return $this->redirect($this->url("auth.login"));
         }
 
@@ -166,35 +155,83 @@ class AuthController extends BaseController
 
     public function update(Request $request): Response
     {
-        // Bezpečnostná verzia - iba svoj účet
         $user = $this->app->getAuthenticator()->getUser();
+        $formData = $request->post();
 
-        $full_name = $request->value('full_name');
+        if (isset($formData['submit'])) {
+            $errors = [];
 
-        // Validácia mena pomocou helper metódy
-        if ($error = $this->validateFullName($full_name, false)) {
-            return $this->html([
-                'user' => $user,
-                'errors' => ['full_name' => $error],
-                'message' => 'Opravte chyby vo formulári'
-            ], 'edit');
+            // check full name
+            if ($error = $this->validateFullName($formData['full_name'] ?? null, false)) {
+                $errors['full_name'] = $error;
+            }
+
+            // check phone
+            if ($error = $this->validatePhone($formData['phone'] ?? null, true)) {
+                $errors['phone'] = $error;
+            }
+
+            // check email
+            if ($error = $this->validateEmail($formData['email'] ?? null, true, false)) {
+                $errors['email'] = $error;
+            } else {
+                $existingUser = User::getOneByEmail($formData['email']);
+                if ($existingUser && $existingUser->getId() !== $user->getId()) {
+                    $errors['email'] = "Tento e-mail je už registrovaný";
+                }
+            }
+
+            $newPassword = $formData['new_password'] ?? null;
+            $currentPassword = $formData['current_password'] ?? null;
+            $confirmPassword = $formData['confirm_password'] ?? null;
+
+            if (!empty($newPassword)) {
+                if ($error = $this->validatePassword($newPassword, true)) {
+                    $errors['new_password'] = $error;
+                }
+
+                if ($error = $this->validatePasswordConfirm($newPassword, $confirmPassword, true)) {
+                    $errors['confirm_password'] = $error;
+                }
+
+                if (empty($currentPassword)) {
+                    $errors['current_password'] = "Aktuálne heslo je povinné pri zmene hesla";
+                } elseif ($currentPassword !== $user->getPassword()) {  // PRIAMEPOROVNANIE - BEZ HASHU
+                    $errors['current_password'] = "Nesprávne aktuálne heslo";
+                }
+            }
+
+            if (!empty($errors)) {
+                return $this->html([
+                    'user' => $user,
+                    'errors' => $errors,
+                    'message' => 'Opravte chyby vo formulári'
+                ], 'edit');
+            }
+
+            if (!empty($formData['full_name'])) {
+                $user->setFullname(trim($formData['full_name']));
+            } else {
+                $user->setFullname(null);
+            }
+
+            $user->setPhone(trim($formData['phone']));
+            $user->setEmail(trim($formData['email']));
+
+            if (!empty($newPassword)) {
+                $user->setPassword($newPassword);
+            }
+
+            $user->save();
+
+            $message = "Údaje boli úspešne upravené.";
+            return $this->html(['user' => $user, 'message' => $message, 'success' => true], 'edit');
         }
 
-        // Aktualizácia
-        if (!empty($full_name)) {
-            $user->setFullname(trim($full_name));
-        } else {
-            $user->setFullname(null);
-        }
-
-        $user->save();
-
-        $message = "Účet bol úspešne upravený.";
-        return $this->html(['user' => $user, 'message' => $message], 'edit');
+        return $this->html(['user' => $user], 'edit');
     }
     public function confirmDelete(Request $request): Response
     {
-        // Kontrola, či používateľ je prihlásený
         if (!($this->app->getAppUser()->isLoggedIn())) {
             return $this->redirect($this->url("auth.login"));
         }
@@ -205,43 +242,31 @@ class AuthController extends BaseController
 
     public function delete(Request $request): Response
     {
-        // Kontrola, či používateľ je prihlásený
         if (!($this->app->getAppUser()->isLoggedIn())) {
             return $this->redirect($this->url("auth.login"));
         }
 
-        // Získaj ID používateľa z requestu
         $id = (int)$request->value('id');
 
-        // Načítaj používateľa z databázy
         $user = User::getOne($id);
 
-        // Skontroluj, či používateľ existuje
         if (!$user) {
-            // Presmerovanie s chybovou hláškou
             return $this->redirect($this->url("auth.index"));
         }
 
-        // Voliteľne: Skontroluj, či používateľ môže mazať tento účet
-        // (napr. iba svoj vlastný účet, nie admin účet)
         $currentUser = $this->app->getAuthenticator()->getUser();
         if ($user->getId() !== $currentUser->getId()) {
-            // Ak sa pokúša zmazať niekoho iného účet
+            // Ak chce zmenit ineho
             return $this->redirect($this->url("auth.index"));
         }
 
-        // Ak nebolo potvrdené, zobraz potvrdzovací formulár
         if (!$request->hasValue('confirm') || $request->value('confirm') !== 'yes') {
             return $this->html(compact('user'), 'delete');
         }
 
-        // Ak je potvrdené, vykonaj zmazanie
         $user->delete();
-
-        // Odhlásenie používateľa
         $this->app->getAuthenticator()->logout();
 
-        // Presmerovanie na login
         return $this->redirect($this->url("auth.login"));
     }
 
@@ -279,7 +304,7 @@ class AuthController extends BaseController
                 return "Telefónne číslo musí obsahovať 9-15 číslic";
             }
 
-            if (!preg_match('/^[\d\s\-\+\(\)]+$/', $phone)) {
+            if (!preg_match('/^[\d\s\-+()]+$/', $phone)) {
                 return "Telefón môže obsahovať iba čísla, medzery, +, - a ()";
             }
         }
@@ -331,7 +356,8 @@ class AuthController extends BaseController
         return null;
     }
 
-    private function validatePasswordConfirm(?string $password, ?string $password_confirm, bool $required = true): ?string
+    private function validatePasswordConfirm(?string $password, ?string $password_confirm,
+                                             bool $required = true): ?string
     {
         if ($required && empty($password_confirm)) {
             return "Potvrdenie hesla je povinné";
