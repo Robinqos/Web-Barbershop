@@ -62,7 +62,7 @@ class AuthController extends BaseController
                 return $this->redirect($this->url("auth.index"));
             }
         }
-        $message = $logged === false ? 'Bad email or password' : null;
+        $message = $logged === false ? 'Nesprávne prihlasovacie údaje!' : null;
         return $this->html(compact("message"));
     }
 
@@ -196,7 +196,7 @@ class AuthController extends BaseController
 
                 if (empty($currentPassword)) {
                     $errors['current_password'] = "Aktuálne heslo je povinné pri zmene hesla";
-                } elseif ($currentPassword !== $user->getPassword()) {  // PRIAMEPOROVNANIE - BEZ HASHU
+                } elseif ($currentPassword !== $user->getPassword()) {  // PRIAME POROVNANIE - BEZ HASHU
                     $errors['current_password'] = "Nesprávne aktuálne heslo";
                 }
             }
@@ -323,7 +323,7 @@ class AuthController extends BaseController
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return "Zadajte platný email (napr. priklad@email.sk)";
             } elseif ($checkUnique) {
-                // Kontrola, či už existuje používateľ s týmto emailom
+                // Kontrola, ci uz existuje pouzivatel s tymto mailom
                 $existing_user = User::getOneByEmail($email);
                 if ($existing_user) {
                     return "Tento e-mail je už registrovaný";

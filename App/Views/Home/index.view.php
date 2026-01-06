@@ -6,9 +6,9 @@
 <!-- HERO SEKCIA -->
 <section class="cb-hero-section">
     <div class="container text-center">
-        <h1 class="display-4 cb-gold-text">CROWN BARBER</h1>
+        <h1 class="display-5 cb-gold-text">CROWN BARBER</h1>
         <p class="lead cb-gold-subtitle">Královský prístup k vášmu štýlu</p>
-        <a href="#sluzby" class="btn cb-btn-gold btn-lg mt-4">Pozrieť služby</a>
+        <a href="#sluzby" class="btn cb-btn-gold btn-lg mt-3">Pozrieť služby</a>
     </div>
 </section>
 

@@ -1,3 +1,4 @@
+/*
 // public/js/script.js
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -51,7 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // spolocne funkcie
+    // spolocne funkcie- pripoji event listenery na polia
+    //okamzite kontroluje format
     function setupField(field, validatorFn, updateBtnFn = null) {
         if (!field) return;
 
@@ -64,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
         field.addEventListener('blur', handler);
     }
 
+    //interaktivny zoznam poziadaviek na heslo
     function createPasswordRequirements(field, note = '') {
         if (!field) return;
 
@@ -437,3 +440,4 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('registerForm')) initRegister();
     if (document.getElementById('editForm')) initEdit();
 });
+*/

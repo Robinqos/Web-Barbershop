@@ -36,7 +36,7 @@ $view->setLayout('auth');
                                        value="<?= htmlspecialchars($user->getFullname() ?? '') ?>"
                                        placeholder="Zadajte vaše meno a priezvisko">
                                 <?php if (isset($errors['full_name'])): ?>
-                                    <div class="invalid-feedback"><?= htmlspecialchars($errors['full_name']) ?></div>
+                                    <div class="invalid-feedback"><?= htmlspecialchars($errors[' full_name']) ?></div>
                                 <?php else: ?>
                                     <div id="full_name_help" class="form-text text-muted"></div>
                                 <?php endif; ?>

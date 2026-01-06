@@ -30,7 +30,7 @@
 
     <!--Custom CSS and JS -->
     <link rel="stylesheet" href="<?= $link->asset('css/styl.css') ?>">
-    <script src="<?= $link->asset('js/script.js') ?>"></script>
+    <script src="<?= $link->asset('js/validation.js') ?>"></script>
 
 </head>
 <body class="d-flex flex-column min-vh-100 cb-dark-theme">
@@ -111,8 +111,7 @@
             <div class="col-md-4 text-center">
                 <h5 class="cb-gold-text mb-3">Otváracie hodiny</h5>
                 <p class="cb-text-muted mb-1">Pon-Pia: 9:00 - 20:00</p>
-                <p class="cb-text-muted mb-1">Sobota: 8:00 - 2:00</p>
-                <p class="cb-text-muted mb-0">Nedeľa: 8:00 - 2:00</p>
+                <p class="cb-text-muted mb-1">So-Ne: 8:00 - 23:00</p>
             </div>
         </div>
         <div class="row mt-4 pt-3 border-top border-secondary">
