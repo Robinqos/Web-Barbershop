@@ -91,7 +91,7 @@ class AuthController extends BaseController
         if (isset($formData['submit'])) {
             $errors = [];
 
-            if ($error = $this->validateFullName($formData['full_name'] ?? null, false)) {
+            if ($error = $this->validateFullName($formData['full_name'] ?? null, true)) {
                 $errors['full_name'] = $error;
             }
 
@@ -281,8 +281,8 @@ class AuthController extends BaseController
             $trimmed = trim($full_name);
             $trimmed = preg_replace('/\s+/', ' ', $trimmed);
 
-            if (strlen(str_replace(' ', '', $trimmed)) < 2) {
-                return "Meno musí obsahovať aspoň 2 ne-medzerové znaky";
+            if (strlen(str_replace(' ', '', $trimmed)) < 4) {
+                return "Meno musí obsahovať aspoň 4 nemedzerové znaky";
             }
         }
 
@@ -352,7 +352,6 @@ class AuthController extends BaseController
                 return "Heslo musí obsahovať aspoň jednu číslicu";
             }
         }
-
         return null;
     }
 

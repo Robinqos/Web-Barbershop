@@ -23,6 +23,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label cb-gold-text fw-bold">Dátum *</label>
+                                <label for="reservationDate"></label>
                                 <input type="date"
                                        id="reservationDate"
                                        name="date"
@@ -38,6 +39,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label cb-gold-text fw-bold">Čas *</label>
+                                <label for="timeSelect"></label>
                                 <select name="time" id="timeSelect" class="form-control bg-dark text-white border-secondary" required>
                                     <option value="">Najprv vyberte dátum</option>
                                     <!-- Časy sa naplnia dynamicky -->
@@ -68,11 +70,11 @@
                                                 <label class="form-check-label w-100" for="service_<?= $service->getId() ?>">
                                                     <div class="d-flex justify-content-between align-items-center">
                                                         <div>
-                                                            <h6 class="mb-1 cb-gold-text"><?= htmlspecialchars($service->getTitle()) ?></h6>
+                                                            <h6 class="mb-2 cb-gold-text"><?= htmlspecialchars($service->getTitle()) ?></h6>
                                                             <small class="cb-text-muted"><?= $service->getDuration() ?> min</small>
                                                         </div>
                                                         <div>
-                                                            <span class="cb-price fs-5"><?= $service->getPrice() ?>€</span>
+                                                            <span class="cb-price fs-4"><?= $service->getPrice() ?>€</span>
                                                         </div>
                                                     </div>
                                                 </label>
@@ -89,39 +91,69 @@
                                 <h5 class="cb-gold-text mb-3">Kontaktné údaje</h5>
 
                                 <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label cb-gold-text">Meno *</label>
-                                        <input type="text"
-                                               name="customer_name"
-                                               id="customerName"
-                                               class="form-control bg-dark text-white border-secondary"
-                                               value="<?= htmlspecialchars($user->isLoggedIn() ? $user->getFullname() : '') ?>"
-                                               placeholder="Zadajte vaše meno"
-                                               required>
-                                                <!-- PRIDANÝ KONTAJNER PRE CHYBOVÉ SPRÁVY -->
-                                        <div id="customerName_help" class="form-text text-danger"></div>
+                                    <!-- MENO - celá šírka -->
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label class="form-label cb-gold-text">Meno a priezvisko *</label>
+                                            <label for="customerName"></label>
+                                            <input type="text"
+                                                   name="guest_name"
+                                                   id="customerName"
+                                                   class="form-control bg-dark text-white border-secondary"
+                                                   value="<?= htmlspecialchars($user->isLoggedIn() ? $user->getFullname() : '') ?>"
+                                                   placeholder="Zadajte vaše meno"
+                                                   <?= $user->isLoggedIn() ? 'readonly' : '' ?>
+                                                   required>
+                                            <div id="customerName_help" class="form-text text-danger"></div>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label cb-gold-text">Telefón *</label>
-                                        <input type="tel"
-                                               name="phone"
-                                               id="phone"
-                                               class="form-control bg-dark text-white border-secondary"
-                                               value="<?= htmlspecialchars($user->isLoggedIn() ? $user->getPhone() : '') ?>"
-                                               pattern="[0-9]{9,15}"
-                                               placeholder="+421 918 123 456"
-                                               required>
-                                        <!-- PRIDANÝ KONTAJNER PRE CHYBOVÉ SPRÁVY -->
-                                        <div id="phone_help" class="form-text text-danger"></div>
+
+                                    <!-- TELEFÓN - celá šírka -->
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label class="form-label cb-gold-text">Telefón *</label>
+                                            <label for="phone"></label>
+                                            <input type="tel"
+                                                   name="guest_phone"
+                                                   id="phone"
+                                                   class="form-control bg-dark text-white border-secondary"
+                                                   value="<?= htmlspecialchars($user->isLoggedIn() ? $user->getPhone() : '') ?>"
+                                                   pattern="[0-9]{9,15}"
+                                                   placeholder="+421 918 123 456"
+                                                   <?= $user->isLoggedIn() ? 'readonly' : '' ?>
+                                                   required>
+                                            <div id="phone_help" class="form-text text-danger"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- EMAIL - celá šírka -->
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label class="form-label cb-gold-text">Email *</label>
+                                            <label for="email"></label>
+                                            <input type="email"
+                                                   name="guest_email"
+                                                   id="email"
+                                                   class="form-control bg-dark text-white border-secondary"
+                                                   value="<?= htmlspecialchars($user->isLoggedIn() ? ($user->getEmail() ?? '') : '') ?>"
+                                                   placeholder="vasemail@domena.sk"
+                                                   <?= $user->isLoggedIn() ? 'readonly' : '' ?>
+                                                   required>
+                                            <div id="email_help" class="form-text text-danger"></div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="mt-3">
-                                    <label class="form-label cb-gold-text">Poznámka (voliteľné)</label>
-                                    <textarea name="notes"
-                                              class="form-control bg-dark text-white border-secondary"
-                                              rows="2"
-                                              placeholder="Špeciálne požiadavky..."></textarea>
+                                <!-- POZNÁMKA - taktiež celá šírka -->
+                                <div class="col-12">
+                                    <div class="mt-3">
+                                        <label class="form-label cb-gold-text">Poznámka (voliteľné)</label>
+                                        <textarea name="notes"
+                                                  class="form-control bg-dark text-white border-secondary"
+                                                  rows="2"
+                                                  placeholder="Špeciálne požiadavky..."></textarea>
+                                        <small class="cb-text-muted">Môžete zadať špeciálne požiadavky alebo poznámky k rezervácii.</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>

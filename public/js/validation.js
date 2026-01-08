@@ -201,7 +201,7 @@ function populateTimeSlots(dateInput, timeSelect, openingHoursNote) {
     timeSelect.value = '';
 }
 
-function updateReservationSummary(dateInput, timeSelect, serviceRadios) {
+function updateReservationSummary(dateInput, timeSelect) {
     // Dátum
     if (dateInput && dateInput.value) {
         const date = new Date(dateInput.value);
@@ -256,8 +256,10 @@ function initRegister() {
 
     const validators = {
         name: () => Validator.validate(fields.name, {
-            custom: (v) => v === '' || v.replace(/\s/g, '').length >= 2,
-            customMsg: 'Meno musí obsahovať aspoň 2 ne-medzerové znaky'
+            required: true,
+            requiredMsg: 'Meno a priezvisko je povinné',
+            custom: (v) => v === '' || v.replace(/\s/g, '').length >= 5,
+            customMsg: 'Meno musí obsahovať aspoň 4 nemedzerové znaky'
         }),
 
         phone: () => Validator.validate(fields.phone, {
@@ -375,8 +377,10 @@ function initEdit() {
 
     const validators = {
         name: () => Validator.validate(fields.name, {
-            custom: (v) => v === '' || v.replace(/\s/g, '').length >= 2,
-            customMsg: 'Meno musí obsahovať aspoň 2 ne-medzerové znaky'
+            required: true,
+            requiredMsg: 'Meno a priezvisko je povinné',
+            custom: (v) => v === '' || v.replace(/\s/g, '').length >= 5,
+            customMsg: 'Meno musí obsahovať aspoň 4 nemedzerové znaky'
         }),
 
         phone: () => Validator.validate(fields.phone, {
@@ -523,8 +527,9 @@ function initReservation() {
     const timeSelect = document.getElementById('timeSelect');
     const serviceRadios = document.querySelectorAll('input[name="service_id"]');
     const openingHoursNote = document.getElementById('openingHoursNote');
-    const customerName = document.getElementById('customerName'); // Použite ID
-    const phone = document.getElementById('phone'); // Použite ID
+    const customerName = document.getElementById('customerName');
+    const phone = document.getElementById('phone');
+    const email = document.getElementById('email');
     const submitBtn = form.querySelector('[type="submit"]');
 
     // Funkcie pre časové sloty
@@ -608,9 +613,9 @@ function initReservation() {
 
         customerName: () => Validator.validate(customerName, {
             required: true,
-            requiredMsg: 'Meno je povinné',
-            custom: (v) => v.replace(/\s/g, '').length >= 2,
-            customMsg: 'Meno musí obsahovať aspoň 2 ne-medzerové znaky'
+            requiredMsg: 'Meno a priezvisko je povinné',
+            custom: (v) => v.replace(/\s/g, '').length >= 5,
+            customMsg: 'Meno musí obsahovať aspoň 4 nemedzerové znaky'
         }),
 
         phone: () => {
@@ -636,6 +641,25 @@ function initReservation() {
             return true;
         },
 
+        // PRIDANÁ VALIDÁCIA EMAILU
+        email: () => {
+            const value = email.value.trim();
+
+            if (!value) {
+                Validator.showError(email, 'Email je povinný');
+                return false;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                Validator.showError(email, 'Zadajte platný email (napr. priklad@email.sk)');
+                return false;
+            }
+
+            Validator.clearError(email);
+            return true;
+        },
+
         service: () => {
             const selectedService = Array.from(serviceRadios).find(radio => radio.checked);
             if (!selectedService) {
@@ -658,6 +682,10 @@ function initReservation() {
 
     if (phone) {
         setupField(phone, validators.phone, updateBtn);
+    }
+
+    if (email) {
+        setupField(email, validators.email, updateBtn);
     }
 
     // Submit handler

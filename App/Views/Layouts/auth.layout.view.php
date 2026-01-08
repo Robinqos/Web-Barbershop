@@ -29,6 +29,7 @@
 
     <link rel="stylesheet" href="<?= $link->asset('css/styl.css') ?>">
     <script src="<?= $link->asset('js/script.js') ?>"></script>
+    <script src="<?= $link->asset('js/validation.js') ?>"></script>
 </head>
 
 <body class="cb-dark-theme">

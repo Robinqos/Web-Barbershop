@@ -37,7 +37,8 @@ $view->setLayout('auth');
                                            id="full_name"
                                            class="form-control <?= isset($errors['full_name']) ? 'is-invalid' : '' ?>"
                                            placeholder="Zadajte vaše meno a priezvisko"
-                                           value="<?= htmlspecialchars($formData['full_name'] ?? '') ?>">
+                                           value="<?= htmlspecialchars($formData['full_name'] ?? '') ?>"
+                                           required>
                                     <?php if (isset($errors['full_name'])) : ?>
                                         <div class="invalid-feedback">
                                             <?= htmlspecialchars($errors['full_name']) ?></div>
@@ -50,7 +51,7 @@ $view->setLayout('auth');
                             <div class="col-12">
                                 <div class="form-group mb-3">
                                     <label for="phone" class="form-label cb-gold-text">
-                                        Telefónne číslo <span class="text-danger">*</span></label>
+                                        Telefónne číslo </label>
                                     <input type="tel"
                                            name="phone"
                                            id="phone"
@@ -69,8 +70,7 @@ $view->setLayout('auth');
                             <div class="col-12">
                                 <div class="form-group mb-3">
                                     <label for="email" class="form-label cb-gold-text">
-                                        E-mail <span class="text-danger">*</span>
-                                    </label>
+                                        E-mail</label>
                                     <input type="email"
                                            name="email"
                                            id="email"
@@ -89,8 +89,7 @@ $view->setLayout('auth');
                             <div class="col-12">
                                 <div class="form-group mb-3">
                                     <label for="password" class="form-label cb-gold-text">
-                                        Heslo <span class="text-danger">*</span>
-                                    </label>
+                                        Heslo</label>
                                     <input type="password"
                                            name="password"
                                            id="password"
@@ -109,8 +108,7 @@ $view->setLayout('auth');
                             <div class="col-12">
                                 <div class="form-group mb-3">
                                     <label for="password_confirm" class="form-label cb-gold-text">
-                                        Potvrdenie hesla <span class="text-danger">*</span>
-                                    </label>
+                                        Potvrdenie hesla</label>
                                     <input type="password"
                                            name="password_confirm"
                                            id="password_confirm"
