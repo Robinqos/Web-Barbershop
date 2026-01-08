@@ -2,7 +2,6 @@
 
 namespace App\Controllers;
 
-use App\Configuration;
 use App\Models\User;
 use Exception;
 use Framework\Core\BaseController;
@@ -35,7 +34,15 @@ class AuthController extends BaseController
         }
         //$this->app->getAppUser()->getIdentity() instanceof \App\Models\User)
         //tu uz je nacitany user z databazy
-        return $this->html();
+
+        $user = $this->app->getAuthenticator()->getUser();
+
+        $reservations = \App\Models\Reservation::getAll(
+            'user_id = ? AND status IN ("pending", "completed")',
+            [$user->getId()],
+            'reservation_date DESC'
+        );
+        return $this->html(compact('reservations'));
     }
 
     /**
