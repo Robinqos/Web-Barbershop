@@ -29,13 +29,15 @@ class AuthController extends BaseController
      */
     public function index(Request $request): Response
     {
-        if (!($this->app->getAppUser()->isLoggedIn())) {  //lepsie takto ako $this->user->isLoggedIn()
+        if (!($this->app->getAppUser()->isLoggedIn())) {
             return $this->redirect($this->url("auth.login"));
         }
-        //$this->app->getAppUser()->getIdentity() instanceof \App\Models\User)
-        //tu uz je nacitany user z databazy
 
         $user = $this->app->getAuthenticator()->getUser();
+
+        if ($user->getPermissions() >= User::ROLE_ADMIN) {
+            return $this->redirect($this->url("admin.index"));
+        }
 
         $reservations = \App\Models\Reservation::getAll(
             'user_id = ? AND status IN ("pending", "completed")',
@@ -66,7 +68,13 @@ class AuthController extends BaseController
                 date_default_timezone_set('Europe/Bratislava');
                 $user->setLastLogin(date('Y-m-d H:i:s'));
                 $user->save();
-                return $this->redirect($this->url("auth.index"));
+
+                // podla opravneni presmerujem
+                if ($user->getPermissions() >= User::ROLE_ADMIN) {
+                    return $this->redirect($this->url("admin.index"));
+                } else {
+                    return $this->redirect($this->url("auth.index"));
+                }
             }
         }
         $message = $logged === false ? 'Nesprávne prihlasovacie údaje!' : null;

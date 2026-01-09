@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\User;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
@@ -27,7 +28,17 @@ class AdminController extends BaseController
      */
     public function authorize(Request $request, string $action): bool
     {
-        return $this->user->isLoggedIn();
+        if (!$this->user->isLoggedIn()) {
+            return false;
+        }
+
+        $userModel = $this->app->getAuthenticator()->getUser();
+
+        if (!$userModel) {
+            return false;
+        }
+        //admin = 2
+        return $userModel->getPermissions() >= User::ROLE_ADMIN;
     }
 
     /**
@@ -39,6 +50,34 @@ class AdminController extends BaseController
      */
     public function index(Request $request): Response
     {
-        return $this->html();
+        $userModel = $this->app->getAuthenticator()->getUser();
+
+        $today = date('Y-m-d');
+
+        $todayReservations = \App\Models\Reservation::getAll(
+            'DATE(reservation_date) = ? AND status = "pending"',
+            [$today],
+            'reservation_date ASC'
+        );
+
+        $upcomingReservations = \App\Models\Reservation::getAll(
+            'reservation_date > NOW() AND status = "pending"',
+            [],
+            'reservation_date ASC',
+            10
+        );
+
+        $totalReservations = count(\App\Models\Reservation::getAll());
+        $totalServices = count(\App\Models\Service::getAll());
+        $totalUsers = count(\App\Models\User::getAll());
+
+        return $this->html([
+            'user' => $userModel,
+            'todayReservations' => $todayReservations,
+            'upcomingReservations' => $upcomingReservations,
+            'totalReservations' => $totalReservations,
+            'totalServices' => $totalServices,
+            'totalUsers' => $totalUsers
+        ]);
     }
 }

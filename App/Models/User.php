@@ -17,6 +17,9 @@ class User extends Model implements IIdentity
     protected int $permissions;
     protected ?string $created_at;
     protected ?string $last_login;
+    public const ROLE_ADMIN = 2;
+    public const ROLE_BARBER = 1;
+    public const ROLE_CUSTOMER = 0;
 
     public function getId(): int
     {
@@ -97,5 +100,15 @@ class User extends Model implements IIdentity
     {
         $users = self::getAll('email = ?', [$email]);
         return !empty($users) ? $users[0] : null;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->permissions >= self::ROLE_ADMIN;
+    }
+
+    public function isBarber(): bool
+    {
+        return $this->permissions >= self::ROLE_BARBER;
     }
 }
