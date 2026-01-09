@@ -12,6 +12,7 @@ CREATE TABLE `reservations` (
                                 `service_id` int(11) NOT NULL,
                                 `reservation_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
                                 `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE current_timestamp(),
+                                `note` varchar(500) DEFAULT NULL,
                                 `status` enum('pending','cancelled','completed') NOT NULL DEFAULT 'pending',
                                 `guest_name` varchar(100) DEFAULT NULL,
                                 `guest_email` varchar(200) DEFAULT NULL,

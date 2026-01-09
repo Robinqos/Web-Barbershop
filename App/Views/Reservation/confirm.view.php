@@ -8,7 +8,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="cb-dark-card text-center">
-                <h2 class="cb-gold-text mb-4">✅ Rezervácia bola vytvorená</h2>
+                <h2 class="cb-gold-text mb-4">Rezervácia bola vytvorená</h2>
 
                 <div class="alert alert-success">
                     <h4>Ďakujeme za vašu rezerváciu!</h4>
@@ -45,6 +45,10 @@
                             <span class="badge bg-warning"><?= $reservation->getStatus() ?></span>
                         </p>
                         <p><strong>Vytvorené:</strong> <?= date('d.m.Y H:i', strtotime($reservation->getCreatedAt())) ?></p>
+
+                        <?php if ($reservation->getNote()): ?>
+                            <p><strong>Poznámka:</strong> <?= htmlspecialchars($reservation->getNote()) ?></p>
+                        <?php endif; ?>
                     </div>
                 </div>
 

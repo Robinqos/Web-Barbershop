@@ -11,6 +11,7 @@ class Reservation extends Model
     protected int $service_id;
     protected string $reservation_date;
     protected string $created_at;
+    protected ?string $note;
     protected string $status;  // 'pending', 'cancelled', 'completed'
     protected ?string $guest_name;
     protected ?string $guest_email;
@@ -63,6 +64,16 @@ class Reservation extends Model
     public function setCreatedAt(string $created_at): void
     {
         $this->created_at = $created_at;
+    }
+
+    public function getNote(): ?string
+    {
+        return $this->note;
+    }
+
+    public function setNote(?string $note): void
+    {
+        $this->note = $note;
     }
 
     public function getStatus(): string

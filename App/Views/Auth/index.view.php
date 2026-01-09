@@ -40,6 +40,7 @@
                                 <th>Dátum a čas</th>
                                 <th>Služba</th>
                                 <th>Status</th>
+                                <th>Poznámka</th>
                                 <th>Akcie</th>
                             </tr>
                             </thead>
@@ -63,6 +64,12 @@
                                         <?php elseif ($reservation->isCompleted()) : ?>
                                             <span class="badge bg-success">Dokončená</span>
                                         <?php endif; ?>
+                                    </td>
+                                    <td style="max-width: 200px; overflow:hidden;">
+                                        <?php $note = $reservation->getNote(); ?>
+                                        <?= trim((string)$note) !== ''
+                                            ? htmlspecialchars($note)
+                                            : '<span class="cb-text-muted">-</span>' ?>
                                     </td>
                                     <td>
                                         <?php if ($reservation->isPending()) : ?>

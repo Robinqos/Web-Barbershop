@@ -94,34 +94,34 @@ class AuthController extends BaseController
     {
         $formData = $this->app->getRequest()->post();
 
-        // Ak je formulár odoslaný
         if (isset($formData['submit'])) {
             $errors = [];
 
             if ($error = $this->validateFullName($formData['full_name'] ?? null, true)) {
-                $errors['full_name'] = $error;
+                $errors['full_name'] = 'Neplatné údaje';
             }
 
             if ($error = $this->validatePhone($formData['phone'] ?? null, true)) {
-                $errors['phone'] = $error;
+                $errors['phone'] = 'Neplatné údaje';
             }
 
             if ($error = $this->validateEmail($formData['email'] ?? null, true, true)) {
-                $errors['email'] = $error;
+                $errors['email'] = 'Neplatné údaje';
             }
 
             if ($error = $this->validatePassword($formData['password'] ?? null, true)) {
-                $errors['password'] = $error;
+                $errors['password'] = 'Neplatné údaje';
             }
 
             if ($error = $this->validatePasswordConfirm($formData['password'] ?? null,
                 $formData['password_confirm'] ?? null,
                 true)) {
-                $errors['password_confirm'] = $error;
+                $errors['password_confirm'] = 'Neplatné údaje';
             }
 
             if ($error = $this->validateTerms($formData['terms'] ?? null, true)) {
-                $errors['terms'] = $error;
+                $errors['terms'] = 'Musíte súhlasiť so spracovaním osobných údajov';
+                // Toto je OK, lebo súhlas s podmienkami je bežná vec
             }
 
             if (!empty($errors)) {
@@ -184,7 +184,7 @@ class AuthController extends BaseController
             } else {
                 $existingUser = User::getOneByEmail($formData['email']);
                 if ($existingUser && $existingUser->getId() !== $user->getId()) {
-                    $errors['email'] = "Tento e-mail je už registrovaný";
+                    $errors['email'] = "Neplatné údaje";
                 }
             }
 
@@ -212,7 +212,7 @@ class AuthController extends BaseController
                 return $this->html([
                     'user' => $user,
                     'errors' => $errors,
-                    'message' => 'Opravte chyby vo formulári'
+                    'message' => 'Neplatné údaje',
                 ], 'edit');
             }
 
@@ -281,7 +281,7 @@ class AuthController extends BaseController
     private function validateFullName(?string $full_name, bool $required = false): ?string
     {
         if ($required && (empty($full_name) || trim($full_name) === '')) {
-            return "Meno je povinné";
+            return "Neplatné údaje";
         }
 
         if (!empty($full_name) && trim($full_name) !== '') {
@@ -289,7 +289,7 @@ class AuthController extends BaseController
             $trimmed = preg_replace('/\s+/', ' ', $trimmed);
 
             if (strlen(str_replace(' ', '', $trimmed)) < 4) {
-                return "Meno musí obsahovať aspoň 4 nemedzerové znaky";
+                return "Neplatné údaje";
             }
         }
 
@@ -299,7 +299,7 @@ class AuthController extends BaseController
     private function validatePhone(?string $phone, bool $required = true): ?string
     {
         if ($required && empty($phone)) {
-            return "Telefónne číslo je povinné";
+            return "Neplatné údaje";
         }
 
         if (!empty($phone)) {
@@ -308,11 +308,11 @@ class AuthController extends BaseController
             $digit_count = strlen($clean_phone);
 
             if ($digit_count < 9 || $digit_count > 15) {
-                return "Telefónne číslo musí obsahovať 9-15 číslic";
+                return "Neplatné údaje";
             }
 
             if (!preg_match('/^[\d\s\-+()]+$/', $phone)) {
-                return "Telefón môže obsahovať iba čísla, medzery, +, - a ()";
+                return "Neplatné údaje";
             }
         }
 
@@ -321,19 +321,19 @@ class AuthController extends BaseController
     private function validateEmail(?string $email, bool $required = true, bool $checkUnique = true): ?string
     {
         if ($required && empty($email)) {
-            return "Email je povinný";
+            return "Neplatné údaje";
         }
 
         if (!empty($email)) {
             $email = trim($email);
 
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return "Zadajte platný email (napr. priklad@email.sk)";
+                return "Neplatné údaje";
             } elseif ($checkUnique) {
                 // Kontrola, ci uz existuje pouzivatel s tymto mailom
                 $existing_user = User::getOneByEmail($email);
                 if ($existing_user) {
-                    return "Tento e-mail je už registrovaný";
+                    return "Neplatné údaje";
                 }
             }
         }
@@ -343,20 +343,20 @@ class AuthController extends BaseController
     private function validatePassword(?string $password, bool $required = true): ?string
     {
         if ($required && empty($password)) {
-            return "Heslo je povinné";
+            return "Neplatné údaje";
         }
 
         if (!empty($password)) {
             if (strlen($password) < 8) {
-                return "Heslo musí mať aspoň 8 znakov";
+                return "Neplatné údaje";
             }
 
             if (!preg_match('/[A-Z]/', $password)) {
-                return "Heslo musí obsahovať aspoň jedno veľké písmeno";
+                return "Neplatné údaje";
             }
 
             if (!preg_match('/[0-9]/', $password)) {
-                return "Heslo musí obsahovať aspoň jednu číslicu";
+                return "Neplatné údaje";
             }
         }
         return null;
@@ -366,11 +366,11 @@ class AuthController extends BaseController
                                              bool $required = true): ?string
     {
         if ($required && empty($password_confirm)) {
-            return "Potvrdenie hesla je povinné";
+            return "Neplatné údaje";
         }
 
         if (!empty($password_confirm) && $password !== $password_confirm) {
-            return "Heslá sa nezhodujú";
+            return "Neplatné údaje";
         }
 
         return null;

@@ -258,7 +258,7 @@ function initRegister() {
         name: () => Validator.validate(fields.name, {
             required: true,
             requiredMsg: 'Meno a priezvisko je povinné',
-            custom: (v) => v === '' || v.replace(/\s/g, '').length >= 5,
+                        custom: (v) => v.replace(/\s/g, '').length >= 4,
             customMsg: 'Meno musí obsahovať aspoň 4 nemedzerové znaky'
         }),
 
@@ -379,7 +379,7 @@ function initEdit() {
         name: () => Validator.validate(fields.name, {
             required: true,
             requiredMsg: 'Meno a priezvisko je povinné',
-            custom: (v) => v === '' || v.replace(/\s/g, '').length >= 5,
+            custom: (v) => v === '' || v.replace(/\s/g, '').length >= 4,
             customMsg: 'Meno musí obsahovať aspoň 4 nemedzerové znaky'
         }),
 
@@ -530,7 +530,18 @@ function initReservation() {
     const customerName = document.getElementById('customerName');
     const phone = document.getElementById('phone');
     const email = document.getElementById('email');
+    const noteTextarea = document.getElementById('note');
     const submitBtn = form.querySelector('[type="submit"]');
+
+    // Počítadlo znakov pre poznámku
+    if (noteTextarea) {
+        const noteCounter = document.getElementById('noteCounter');
+        if (noteCounter) {
+            noteTextarea.addEventListener('input', function() {
+                noteCounter.textContent = 70 - this.value.length;
+            });
+        }
+    }
 
     // Funkcie pre časové sloty
     if (dateInput && timeSelect) {
@@ -538,6 +549,7 @@ function initReservation() {
             populateTimeSlots(dateInput, timeSelect, openingHoursNote);
             updateSummary();
             validators.date();
+            validators.dateTimeFuture();
             updateBtn();
         });
     }
@@ -546,6 +558,7 @@ function initReservation() {
         timeSelect.addEventListener('change', function() {
             updateSummary();
             validators.time();
+            validators.dateTimeFuture();
             updateBtn();
         });
     }
@@ -611,10 +624,29 @@ function initReservation() {
             return true;
         },
 
+        dateTimeFuture: () => {
+            if (!dateInput.value || !timeSelect.value) {
+                return true; // Ak nie je dátum alebo čas, nevaliduj
+            }
+
+            // Zložiť dátum a čas
+            const dateTimeStr = dateInput.value + ' ' + timeSelect.value + ':00';
+            const selectedDate = new Date(dateTimeStr);
+            const now = new Date();
+
+            if (selectedDate <= now) {
+                Validator.showError(timeSelect, 'Tento čas nieje dostupný.');
+                return false;
+            }
+
+            Validator.clearError(timeSelect);
+            return true;
+        },
+
         customerName: () => Validator.validate(customerName, {
             required: true,
             requiredMsg: 'Meno a priezvisko je povinné',
-            custom: (v) => v.replace(/\s/g, '').length >= 5,
+            custom: (v) => v.replace(/\s/g, '').length >= 4,
             customMsg: 'Meno musí obsahovať aspoň 4 nemedzerové znaky'
         }),
 
@@ -641,7 +673,6 @@ function initReservation() {
             return true;
         },
 
-        // PRIDANÁ VALIDÁCIA EMAILU
         email: () => {
             const value = email.value.trim();
 
@@ -672,6 +703,19 @@ function initReservation() {
                 el.classList.remove('border-danger');
             });
             return true;
+        },
+
+        note: () => {
+            if (!noteTextarea) return true;
+
+            const note = noteTextarea.value;
+            if (note.length > 70) {
+                Validator.showError(noteTextarea, 'Poznámka môže mať maximálne 70 znakov');
+                return false;
+            }
+
+            Validator.clearError(noteTextarea);
+            return true;
         }
     };
 
@@ -686,6 +730,10 @@ function initReservation() {
 
     if (email) {
         setupField(email, validators.email, updateBtn);
+    }
+
+    if (noteTextarea) {
+        setupField(noteTextarea, validators.note, updateBtn);
     }
 
     // Submit handler

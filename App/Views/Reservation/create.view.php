@@ -148,11 +148,13 @@
                                 <div class="col-12">
                                     <div class="mt-3">
                                         <label class="form-label cb-gold-text">Poznámka (voliteľné)</label>
-                                        <textarea name="notes"
+                                        <textarea name="note"
+                                                  id="note"
                                                   class="form-control bg-dark text-white border-secondary"
                                                   rows="2"
-                                                  placeholder="Špeciálne požiadavky..."></textarea>
-                                        <small class="cb-text-muted">Môžete zadať špeciálne požiadavky alebo poznámky k rezervácii.</small>
+                                                  placeholder="Špeciálne požiadavky..."
+                                                  maxlength="70"></textarea>
+                                        <small class="cb-text-muted">Zostávajúce znaky: 70/<span id="noteCounter">70</span></small>
                                     </div>
                                 </div>
                             </div>

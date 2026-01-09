@@ -47,11 +47,11 @@ class ReservationController extends BaseController
 
         // validacia
         if (!$request->value('service_id')) {
-            $errors[] = 'Vyberte službu';
+            $errors[] = 'Neplatné údaje';
         }
 
         if (!$request->value('date') || !$request->value('time')) {
-            $errors[] = 'Vyberte dátum a čas';
+            $errors[] = 'Neplatné údaje';
         }
 
         // datum + cas
@@ -59,33 +59,53 @@ class ReservationController extends BaseController
 
         // kontrola datumu a udajov
         if (strtotime($reservationDate) < time()) {
-            $errors[] = 'Dátum a čas musia byť v budúcnosti';
+            $errors[] = 'Neplatné údaje';
         }
 
         $isLoggedIn = $this->app->getAppUser()->isLoggedIn();
 
         if (!$isLoggedIn) {
             if (empty($request->value('guest_name'))) {
-                $errors[] = 'Zadajte meno';
+                $errors[] = 'Neplatné údaje';
+            }else {
+                $name = trim($request->value('guest_name'));
+                if (strlen(str_replace(' ', '', $name)) < 4) {
+                    $errors[] = 'Neplatné údaje';
+                }
             }
             if (empty($request->value('guest_phone'))) {
-                $errors[] = 'Zadajte telefón';
+                $errors[] = 'Neplatné údaje';
+            } else {
+                // Kontrola telefónu (9-15 číslic)
+                $phone = trim($request->value('guest_phone'));
+                $digits = preg_replace('/\D/', '', $phone);
+                if (strlen($digits) < 9 || strlen($digits) > 15) {
+                    $errors[] = 'Neplatné údaje';
+                }
             }
+
             if (empty($request->value('guest_email'))) {
-                $errors[] = 'Zadajte email';
+                $errors[] = 'Neplatné údaje';
             } elseif (!filter_var($request->value('guest_email'), FILTER_VALIDATE_EMAIL)) {
-                $errors[] = 'Zadajte platný email';
+                $errors[] = 'Neplatné údaje';
             }
+        }
+
+        $note = $request->value('note') ?? '';
+        if (strlen($note) > 70) {
+            $errors[] = 'Neplatné údaje';
         }
 
         if (!empty($errors)) {
             $services = \App\Models\Service::getAll();
             $user = $this->app->getAuthenticator()->getUser();
 
+            $errorMessage = 'Formulár obsahuje chyby. Skontrolujte zadané údaje.';
+
             return $this->html([
                 'services' => $services,
                 'user' => $user,
-                'errors' => $errors,
+                'error' => $errorMessage,
                 'old' => $this->app->getRequest()->post()
             ], 'create');
         }
@@ -94,6 +114,7 @@ class ReservationController extends BaseController
         $reservation->setServiceId((int)$request->value('service_id'));
         $reservation->setReservationDate($reservationDate);
         $reservation->setStatus(Reservation::STATUS_PENDING);
+        $reservation->setNote($note);
 
         date_default_timezone_set('Europe/Bratislava');
         $reservation->setCreatedAt(date('Y-m-d H:i:s'));
@@ -102,6 +123,7 @@ class ReservationController extends BaseController
         if ($isLoggedIn) {
             $user = $this->app->getAuthenticator()->getUser();
             $reservation->setUserId($user->getId());
+            //todo:mozno pridat to, aby sa userove udaje skopirovali do rezervacie
         } else {
             $reservation->setUserId(null);
             $reservation->setGuestName($request->value('guest_name'));
