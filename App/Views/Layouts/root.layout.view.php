@@ -43,7 +43,7 @@
                  title="<?= App\Configuration::APP_NAME ?>"
                  alt="CrownBarber Logo"
                  class="img-fluid"
-                 style="max-height: 50px;">
+                 style="max-height: 40px;">
         </a>
 
         <!-- Mobilne tlacidlo -->

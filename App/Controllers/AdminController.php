@@ -70,6 +70,7 @@ class AdminController extends BaseController
         $totalReservations = count(\App\Models\Reservation::getAll());
         $totalServices = count(\App\Models\Service::getAll());
         $totalUsers = count(\App\Models\User::getAll());
+        $totalBarbers = count(\App\Models\User::getAll('permissions = ?', [User::ROLE_BARBER]));
 
         return $this->html([
             'user' => $userModel,
@@ -77,7 +78,37 @@ class AdminController extends BaseController
             'upcomingReservations' => $upcomingReservations,
             'totalReservations' => $totalReservations,
             'totalServices' => $totalServices,
-            'totalUsers' => $totalUsers
+            'totalUsers' => $totalUsers,
+            'totalBarbers' => $totalBarbers
         ]);
+    }
+    //zobraz rezervacie
+    public function showReservations(Request $request): Response
+    {
+        $filter = $request->value('filter');
+        $where = [];
+        $params = [];
+
+        // Filtre
+        if ($filter === 'today') {
+            $today = date('Y-m-d');
+            $where[] = 'DATE(reservation_date) = ?';
+            $params[] = $today;
+        } elseif ($filter === 'upcoming') {
+            $where[] = 'reservation_date > NOW()';
+        }
+
+        $whereClause = $where ? implode(' AND ', $where) : null;
+
+        $reservations = \App\Models\Reservation::getAll(
+            $whereClause,
+            $params,
+            'reservation_date DESC'
+        );
+
+        return $this->html([
+            'reservations' => $reservations,
+            'filter' => $filter
+        ], 'reservations');
     }
 }
