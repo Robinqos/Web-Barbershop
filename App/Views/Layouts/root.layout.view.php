@@ -31,6 +31,7 @@
     <!--Custom CSS and JS -->
     <link rel="stylesheet" href="<?= $link->asset('css/styl.css') ?>">
     <script src="<?= $link->asset('js/validation.js') ?>"></script>
+    <script src="<?= $link->asset('js/adminEdit.js') ?>"></script>
 
 </head>
 <body class="d-flex flex-column min-vh-100 cb-dark-theme">

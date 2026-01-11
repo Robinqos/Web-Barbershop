@@ -31,7 +31,7 @@
                 <h3 class="cb-gold-text"><?= $totalReservations ?></h3>
                 <p>Celkové rezervácie</p>
                 <a href="<?= $link->url('admin.showReservations') ?>" class="btn btn-warning btn-sm mt-2">
-                    <i class="bi bi-list"></i> Zobraziť všetky
+                    <i class="bi bi-list"></i> Zobraziť
                 </a>
             </div>
         </div>
@@ -40,7 +40,7 @@
                 <h3 class="cb-gold-text"><?= $totalServices ?></h3>
                 <p>Služby</p>
                 <a href="<?= $link->url('admin.services') ?>" class="btn btn-warning btn-sm mt-2">
-                    <i class="bi bi-list"></i> Zobraziť všetky
+                    <i class="bi bi-list"></i> Zobraziť
                 </a>
             </div>
         </div>
@@ -49,7 +49,7 @@
                 <h3 class="cb-gold-text"><?= $totalBarbers ?></h3>
                 <p>Barberi</p>
                 <a href="<?= $link->url('admin.barbers') ?>" class="btn btn-warning btn-sm mt-2">
-                    <i class="bi bi-list"></i> Zobraziť všetky
+                    <i class="bi bi-list"></i> Zobraziť
                 </a>
             </div>
         </div>
@@ -58,7 +58,7 @@
                 <h3 class="cb-gold-text"><?= $totalUsers ?></h3>
                 <p>Používatelia</p>
                 <a href="<?= $link->url('admin.users') ?>" class="btn btn-warning btn-sm mt-2">
-                    <i class="bi bi-list"></i> Zobraziť všetky
+                    <i class="bi bi-list"></i> Zobraziť
                 </a>
             </div>
         </div>
@@ -91,7 +91,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 class="cb-gold-text mb-0">Dnešné rezervácie</h3>
                     <a href="<?= $link->url('admin.showReservations', ['filter' => 'today']) ?>" class="btn btn-warning btn-sm">
-                        <i class="bi bi-eye"></i> Zobraziť všetky
+                        <i class="bi bi-eye"></i> Zobraziť
                     </a>
                 </div>
 
@@ -130,7 +130,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 class="cb-gold-text mb-0">Nadchádzajúce rezervácie</h3>
                     <a href="<?= $link->url('admin.showReservations', ['filter' => 'upcoming']) ?>" class="btn btn-warning btn-sm">
-                        <i class="bi bi-eye"></i> Zobraziť všetky
+                        <i class="bi bi-eye"></i> Zobraziť
                     </a>
                 </div>
 
