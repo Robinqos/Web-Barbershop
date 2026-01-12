@@ -60,9 +60,9 @@
                                     </td>
                                     <td>
                                         <?php if ($reservation->isPending()) : ?>
-                                            <span class="badge bg-warning">Čakajúca</span>
+                                            <span class="badge bg-warning text-dark">Čakajúca</span>
                                         <?php elseif ($reservation->isCompleted()) : ?>
-                                            <span class="badge bg-success">Dokončená</span>
+                                            <span class="badge bg-success text-dark">Dokončená</span>
                                         <?php endif; ?>
                                     </td>
                                     <td style="max-width: 200px; overflow:hidden;">

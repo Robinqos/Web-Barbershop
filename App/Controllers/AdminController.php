@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Reservation;
+use App\Models\Service;
 use App\Models\User;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
@@ -118,18 +119,18 @@ class AdminController extends BaseController
             'services' => $services
         ], 'reservations');
     }
+
     /**
-     * AJAX endpoint na aktualizáciu rezervácie
+     * Univerzalny AJAX endpoint
      */
-    public function updateReservationAjax(Request $request): Response
+    public function updateAjax(Request $request): Response
     {
         if (!$request->isAjax()) {
             return $this->json(['success' => false, 'message' => 'Iba AJAX požiadavky']);
         }
 
-        //json z Request triedy
         try {
-            $data = $request->json();  //toto vrati uz decode json
+            $data = $request->json();
         } catch (\JsonException $e) {
             return $this->json(['success' => false, 'message' => 'Neplatný JSON vstup']);
         }
@@ -137,7 +138,27 @@ class AdminController extends BaseController
         $id = isset($data->id) ? (int)$data->id : 0;
         $field = isset($data->field) ? $data->field : '';
         $value = isset($data->value) ? $data->value : '';
+        $entity = isset($data->entity) ? $data->entity : 'reservation';
 
+        switch ($entity) {
+            case 'reservation':
+                return $this->updateReservation($id, $field, $value);
+
+            case 'user':
+                return $this->updateUser($id, $field, $value);
+
+            case 'service':
+                return $this->updateService($id, $field, $value);
+
+            default:
+                return $this->json(['success' => false, 'message' => 'Neplatná entita: ' . $entity]);
+        }
+    }
+    /**
+     * AJAX endpoint na aktualizáciu rezervácie
+     */
+    public function updateReservation($id, $field, $value): Response
+    {
         $reservation = Reservation::getOne($id);
 
         if (!$reservation) {
@@ -155,16 +176,27 @@ class AdminController extends BaseController
                 $reservation->setGuestPhone($value);
                 break;
 
-            case 'guest_name':  // PRIDAŤ!
+            case 'guest_name':
                 $reservation->setGuestName($value);
                 break;
 
-            case 'service_id':  // PRIDAŤ!
+            case 'service_id':
                 $serviceId = (int)$value;
                 if ($serviceId <= 0) {
                     $errors[] = 'Neplatná služba';
                 } else {
                     $reservation->setServiceId($serviceId);
+                    $reservation->save();
+
+                    // nacita nazov sluzby a vrat
+                    $service = \App\Models\Service::getOne($serviceId);
+
+                    return $this->json([
+                        'success' => true,
+                        'message' => 'Rezervácia aktualizovaná',
+                        'value' => $service ? $service->getTitle() : 'Neznáma služba',
+                        'serviceId' => $serviceId
+                    ]);
                 }
                 break;
 
@@ -176,6 +208,13 @@ class AdminController extends BaseController
                         $errors[] = 'Neplatný formát dátumu';
                     } else {
                         $reservation->setReservationDate($value);
+                        $reservation->save();
+
+                        return $this->json([
+                            'success' => true,
+                            'message' => 'Rezervácia aktualizovaná',
+                            'value' => $reservation->getFormattedReservationDate()  // vrati datetime format
+                        ]);
                     }
                 }
                 break;
@@ -207,49 +246,123 @@ class AdminController extends BaseController
         return $this->json([
             'success' => true,
             'message' => 'Rezervácia aktualizovaná',
-            'reservation' => [
-                'id' => $reservation->getId(),
-                'customer_name' => $reservation->getCustomerName(),
-                'formatted_date' => $reservation->getFormattedReservationDate(),
-                'status' => $reservation->getStatus(),
-                'status_badge' => $this->getStatusBadge($reservation->getStatus()),
-                'service_title' => $reservation->getService() ? $reservation->getService()->getTitle() : 'N/A'
-            ]
+            'badgeClass' => $this->getStatusBadge($reservation->getStatus())
         ]);
     }
 
-    /**
-     * Rychla akcia
-     */
-    public function completeReservation(Request $request): Response
+    private function updateUser($id, $field, $value)
     {
-        $id = (int) $request->value('id');
-        $reservation = Reservation::getOne($id);
-
-        if ($reservation && $reservation->isPending()) {
-            $reservation->setStatus('completed');
-            $reservation->save();
+        $user = User::getOne($id);
+        if (!$user) {
+            return $this->json(['success' => false, 'message' => 'Používateľ neexistuje']);
         }
 
-        return $this->redirect($this->url('admin.showReservations'));
-    }
+        $errors = [];
 
-    /**
-     * Rychla akcia
-     */
-    public function cancelReservation(Request $request): Response
-    {
-        $id = (int) $request->value('id');
-        $reservation = Reservation::getOne($id);
+        switch ($field) {
+            case 'name':
+                $user->setFullName($value);
+                break;
 
-        if ($reservation && $reservation->isPending()) {
-            $reservation->setStatus('cancelled');
-            $reservation->save();
+            case 'email':
+                if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                    $errors[] = 'Neplatný email';
+                } else {
+                    $user->setEmail($value);
+                }
+                break;
+
+            case 'phone':
+                $user->setPhone($value);
+                break;
+
+            case 'permissions':
+                $allowedPermissions = [User::ROLE_CUSTOMER, User::ROLE_BARBER, User::ROLE_ADMIN];
+                if (!in_array((int)$value, $allowedPermissions)) {
+                    $errors[] = 'Neplatné oprávnenia';
+                } else {
+                    $user->setPermissions((int)$value);
+                }
+                break;
+
+            default:
+                return $this->json(['success' => false, 'message' => 'Neplatné pole: ' . $field]);
         }
 
-        return $this->redirect($this->url('admin.showReservations'));
+        if (!empty($errors)) {
+            return $this->json(['success' => false, 'errors' => $errors]);
+        }
+
+        $user->save();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Používateľ aktualizovaný',
+            'badgeClass' => $this->getUserBadgeClass($user->getPermissions())
+        ]);
     }
 
+    private function getUserBadgeClass(int $permissions): string
+    {
+        $badges = [
+            User::ROLE_CUSTOMER => 'secondary',
+            User::ROLE_BARBER => 'info',
+            User::ROLE_ADMIN => 'warning'
+        ];
+
+        return $badges[$permissions] ?? 'secondary';
+    }
+    private function updateService($id, $field, $value)
+    {
+        $service = Service::getOne($id);
+        if (!$service) {
+            return $this->json(['success' => false, 'message' => 'Služba neexistuje']);
+        }
+
+        $errors = [];
+
+        switch ($field) {
+            case 'title':
+                $service->setTitle($value);
+                break;
+
+            case 'description':
+                $service->setDescription($value);
+                break;
+
+            case 'price':
+                $price = (float)$value;
+                if ($price <= 0) {
+                    $errors[] = 'Cena musí byť kladné číslo';
+                } else {
+                    $service->setPrice($price);
+                }
+                break;
+
+            case 'duration':
+                $duration = (int)$value;
+                if ($duration <= 0) {
+                    $errors[] = 'Dĺžka musí byť kladné číslo';
+                } else {
+                    $service->setDuration($duration);
+                }
+                break;
+
+            default:
+                return $this->json(['success' => false, 'message' => 'Neplatné pole: ' . $field]);
+        }
+
+        if (!empty($errors)) {
+            return $this->json(['success' => false, 'errors' => $errors]);
+        }
+
+        $service->save();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Služba aktualizovaná'
+        ]);
+    }
     //helper metoda
     private function getStatusBadge(string $status): string
     {
@@ -260,5 +373,25 @@ class AdminController extends BaseController
         ];
 
         return $badges[$status] ?? 'secondary';
+    }
+
+    /**
+     * Vymazanie rezervacie (len ak je cancelled)
+     */
+    public function deleteReservation(Request $request): Response
+    {
+        $id = (int) $request->value('id');
+        $reservation = Reservation::getOne($id);
+
+        if (!$reservation) {
+            return $this->redirect($this->url('admin.showReservations'));
+        }
+
+        // Vymaž len ak je rezervácia zrušená (cancelled)
+        if ($reservation->getStatus() === 'cancelled') {
+            $reservation->delete();
+        }
+
+        return $this->redirect($this->url('admin.showReservations'));
     }
 }

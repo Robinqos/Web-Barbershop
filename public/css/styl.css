@@ -131,6 +131,10 @@
     width: auto;
 }
 
+/* Hover efekt admin edit */
+.editable-cell:hover {
+    background-color: rgba(212, 175, 55, 0.1) !important;
+}
 
 /* 11. RESPONZIVNOST */
 

@@ -60,6 +60,7 @@
                                              data-id="<?= $reservation->getId() ?>"
                                              data-field="reservation_date"
                                              data-type="datetime"
+                                             data-entity="reservation"
                                              title="Kliknite pre úpravu">
                                             <?= $reservation->getFormattedReservationDate() ?>
                                         </div>
@@ -74,6 +75,7 @@
                                                  data-id="<?= $reservation->getId() ?>"
                                                  data-field="guest_name"
                                                  data-type="text"
+                                                 data-entity="reservation"
                                                  title="Kliknite pre úpravu">
                                                 <?= htmlspecialchars($reservation->getCustomerName()) ?>
                                             </div>
@@ -95,6 +97,7 @@
                                                  data-id="<?= $reservation->getId() ?>"
                                                  data-field="guest_email"
                                                  data-type="email"
+                                                 data-entity="reservation"
                                                  title="Kliknite pre úpravu">
                                                 <?= htmlspecialchars($reservation->getGuestEmail() ?? '') ?>
                                             </div>
@@ -118,6 +121,7 @@
                                                  data-id="<?= $reservation->getId() ?>"
                                                  data-field="guest_phone"
                                                  data-type="text"
+                                                 data-entity="reservation"
                                                  title="Kliknite pre úpravu">
                                                 <?= htmlspecialchars($reservation->getGuestPhone() ?? '') ?>
                                             </div>
@@ -135,12 +139,22 @@
 
                                     <!-- sluzba -->
                                     <td class="align-middle">
+                                        <?php
+                                        $serviceOptions = [];
+                                        foreach ($services as $service) {
+                                            $serviceOptions[] = [
+                                                'value' => $service->getId(),
+                                                'text' => $service->getTitle()];
+                                        }
+                                        ?>
                                         <div class="editable-cell mx-auto w-100 d-flex justify-content-center align-items-center"
                                              style="min-height: 40px;"
                                              data-id="<?= $reservation->getId() ?>"
                                              data-field="service_id"
-                                             data-type="select_service"
-                                             data-current-service-id="<?= $reservation->getServiceId() ?>"
+                                             data-type="select"
+                                             data-entity="reservation"
+                                             data-render="service"
+                                             data-options='<?= json_encode($serviceOptions) ?>'
                                              title="Kliknite pre úpravu služby">
                                             <div class="text-truncate">
                                                 <?= $reservation->getService() ? htmlspecialchars($reservation->getService()->getTitle()) : 'Neznáma služba' ?>
@@ -148,18 +162,28 @@
                                         </div>
                                     </td>
 
-                                    <!-- status -->
+                                    <!-- Status -->
                                     <td class="align-middle">
+                                        <?php
+                                        $statusOptions = [
+                                            ['value' => 'pending', 'text' => 'Čakajúca'],
+                                            ['value' => 'completed', 'text' => 'Dokončená'],
+                                            ['value' => 'cancelled', 'text' => 'Zrušená']
+                                        ];
+                                        ?>
                                         <div class="editable-cell mx-auto w-100 d-flex justify-content-center align-items-center"
                                              style="min-height: 40px;"
                                              data-id="<?= $reservation->getId() ?>"
                                              data-field="status"
                                              data-type="select"
+                                             data-entity="reservation"
+                                             data-render="status"
+                                             data-options='<?= json_encode($statusOptions) ?>'
                                              title="Kliknite pre zmenu">
                                             <span class="badge bg-<?=
                                             $reservation->getStatus() === 'pending' ? 'warning' :
                                                 ($reservation->getStatus() === 'completed' ? 'success' : 'danger')
-                                            ?>">
+                                            ?> text-dark">
                                                 <?= $reservation->getStatus() === 'pending' ? 'Čakajúca' :
                                                     ($reservation->getStatus() === 'completed' ? 'Dokončená' : 'Zrušená') ?>
                                             </span>
@@ -173,6 +197,7 @@
                                              data-id="<?= $reservation->getId() ?>"
                                              data-field="note"
                                              data-type="textarea"
+                                             data-entity="reservation"
                                              title="Kliknite pre úpravu">
                                             <div class="text-truncate text-start">
                                                 <?= htmlspecialchars($reservation->getNote() ?? '') ?>
@@ -183,22 +208,14 @@
                                     <!-- akcie -->
                                     <td class="align-middle">
                                         <div class="mx-auto w-100 d-flex justify-content-center align-items-center" style="min-height: 40px;">
-                                            <div class="btn-group btn-group-sm">
-                                                <?php if ($reservation->isPending()): ?>
-                                                    <a href="<?= $link->url('admin.completeReservation', ['id' => $reservation->getId()]) ?>"
-                                                       class="btn btn-outline-success btn-sm"
-                                                       title="Dokončiť"
-                                                       onclick="return confirm('Naozaj chcete dokončiť túto rezerváciu?')">
-                                                        <i class="bi bi-check"></i>
-                                                    </a>
-                                                    <a href="<?= $link->url('admin.cancelReservation', ['id' => $reservation->getId()]) ?>"
-                                                       class="btn btn-outline-danger btn-sm"
-                                                       title="Zrušiť"
-                                                       onclick="return confirm('Naozaj chcete zrušiť túto rezerváciu?')">
-                                                        <i class="bi bi-x"></i>
-                                                    </a>
-                                                <?php endif; ?>
-                                            </div>
+                                            <?php if ($reservation->getStatus() === 'cancelled'): ?>
+                                                <a href="<?= $link->url('admin.deleteReservation', ['id' => $reservation->getId()]) ?>"
+                                                   class="btn btn-outline-danger btn-sm"
+                                                   title="Vymazať natrvalo"
+                                                   onclick="return confirm('Naozaj chcete natrvalo vymazať túto zrušenú rezerváciu? Táto akcia je nevratná!')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
