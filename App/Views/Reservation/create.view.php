@@ -118,7 +118,6 @@
                                                    id="phone"
                                                    class="form-control bg-dark text-white border-secondary"
                                                    value="<?= htmlspecialchars($user->isLoggedIn() ? $user->getPhone() : '') ?>"
-                                                   pattern="[0-9]{9,15}"
                                                    placeholder="+421 918 123 456"
                                                    <?= $user->isLoggedIn() ? 'readonly' : '' ?>
                                                    required>

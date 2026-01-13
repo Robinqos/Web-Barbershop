@@ -1,4 +1,4 @@
-// public/js/validation.js
+// public/js/userValidation.js
 const Validator = {
     showError(field, message) {
         field.classList.add('is-invalid');

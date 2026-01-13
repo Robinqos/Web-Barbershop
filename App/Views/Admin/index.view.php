@@ -70,13 +70,13 @@
             <div class="cb-dark-card">
                 <h3 class="cb-gold-text mb-3">Rýchle akcie</h3>
                 <div class="btn-group" role="group">
-                    <a href="<?= $link->url('admin.service.create') ?>" class="btn btn-outline-warning">
+                    <a href="<?= $link->url('admin.createService') ?>" class="btn btn-outline-warning">
                         <i class="bi bi-plus-circle"></i> Pridať službu
                     </a>
                     <a href="<?= $link->url('admin.barber.create') ?>" class="btn btn-outline-warning">
                         <i class="bi bi-plus-circle"></i> Pridať barbera
                     </a>
-                    <a href="<?= $link->url('admin.user.create') ?>" class="btn btn-outline-warning">
+                    <a href="<?= $link->url('admin.createUser') ?>" class="btn btn-outline-warning">
                         <i class="bi bi-plus-circle"></i> Pridať používateľa
                     </a>
                 </div>
