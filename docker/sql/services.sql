@@ -16,5 +16,6 @@ CREATE TABLE `services` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 INSERT INTO `services` (`id`, `title`, `price`, `duration`, `description`) VALUES
-                                                                               (1,	'Pánsky strih',	15,	60,	'Profesionálne strihanie vlasov podľa vášho štýlu'),
-                                                                               (2,	'Úprava brady',	10,	30,	'Tvarovanie a úprava brady podľa aktuálnych trendov a vášho osobitného štýlu');
+                                                                               (1,	'Pánsky strih',	15,	60,	'Profesionálne strihanie vlasov podľa vášho vlastného štýlu.'),
+                                                                               (2,	'Úprava brady',	10,	30,	'Tvarovanie a úprava brady podľa a vášho vlastného štýlu.'),
+                                                                               (3,	'Kompletná úprava',	20,	60,	'Pánsky strih + úprava brady v jednom. Komplexná pánska úprava s dôrazom na detail a precíznosť.');

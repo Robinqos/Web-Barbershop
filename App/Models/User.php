@@ -102,6 +102,14 @@ class User extends Model implements IIdentity
         return !empty($users) ? $users[0] : null;
     }
 
+    public function getBarber(): ?Barber
+    {
+        if ($this->getPermissions() === self::ROLE_BARBER) {
+            return Barber::getByUserId($this->getId());
+        }
+        return null;
+    }
+
     public function isAdmin(): bool
     {
         return $this->permissions >= self::ROLE_ADMIN;
@@ -109,6 +117,7 @@ class User extends Model implements IIdentity
 
     public function isBarber(): bool
     {
-        return $this->permissions >= self::ROLE_BARBER;
+        return $this->getPermissions() === self::ROLE_BARBER;
     }
+
 }

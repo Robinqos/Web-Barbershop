@@ -13,7 +13,7 @@ CREATE TABLE `users` (
                          `password` varchar(255) NOT NULL,
                          `phone` varchar(13) DEFAULT NULL,
                          `permissions` int(1) NOT NULL,
-                         `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE current_timestamp(),
+                         `created_at` datetime NOT NULL DEFAULT current_timestamp(),
                          `last_login` datetime DEFAULT NULL,
                          PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
