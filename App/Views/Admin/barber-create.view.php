@@ -16,7 +16,7 @@
     <div class="row">
         <div class="col-12">
             <div class="cb-dark-card">
-                <form method="post" action="<?= $link->url('admin.createBarber') ?>">
+                <form action="<?= $link->url('admin.createBarber') ?>" method="POST" id="createBarberForm">
                     <h3 class="cb-gold-text">Základné informácie</h3>
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -59,15 +59,17 @@
                     <h3 class="cb-gold-text mt-4">Barber informácie</h3>
                     <div class="row mb-3">
                         <div class="col-12">
-                            <label for="bio" class="form-label">Bio</label>
-                            <textarea class="form-control" id="bio" name="bio" rows="3"></textarea>
+                            <label for="bio" class="form-label">Bio *</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3" required></textarea>
+                            <div id="bio_help" class="form-text text-danger"></div>
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="photo_url" class="form-label">URL fotky</label>
-                            <input type="text" class="form-control" id="photo_url" name="photo_url">
+                            <label for="photo_url" class="form-label">URL fotky *</label>
+                            <input type="text" class="form-control" id="photo_url" name="photo_url" required>
+                            <div id="photo_url_help" class="form-text text-danger"></div>
                         </div>
                         <div class="col-md-6">
                             <label for="is_active" class="form-label">Status</label>

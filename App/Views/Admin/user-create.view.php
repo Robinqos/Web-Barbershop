@@ -15,29 +15,33 @@
     <div class="row">
         <div class="col-md-6 offset-md-3">
             <div class="cb-dark-card">
-                <form action="<?= $link->url('admin.createUser') ?>" method="POST">
+                <form action="<?= $link->url('admin.createUser') ?>" method="POST" id="createUserForm">
                     <!-- meno -->
                     <div class="mb-3">
                         <label for="name" class="form-label cb-text-muted">Meno a priezvisko *</label>
                         <input type="text" class="form-control cb-input" id="name" name="name" required>
+                        <div id="name_help" class="form-text text-danger"></div>
                     </div>
 
                     <!-- email -->
                     <div class="mb-3">
                         <label for="email" class="form-label cb-text-muted">Email *</label>
                         <input type="email" class="form-control cb-input" id="email" name="email" required>
+                        <div id="email_help" class="form-text text-danger"></div>
                     </div>
 
                     <!-- cislo -->
                     <div class="mb-3">
                         <label for="phone" class="form-label cb-text-muted">Telefón</label>
-                        <input type="text" class="form-control cb-input" id="phone" name="phone">
+                        <input type="text" class="form-control cb-input" id="phone" name="phone" required>
+                        <div id="phone_help" class="form-text text-danger"></div>
                     </div>
 
                     <!-- heslo -->
                     <div class="mb-3">
                         <label for="password" class="form-label cb-text-muted">Heslo *</label>
                         <input type="password" class="form-control cb-input" id="password" name="password" required>
+                        <div id="password_help" class="form-text text-danger"></div>
                     </div>
 
                     <!-- rola -->
@@ -45,9 +49,9 @@
                         <label for="permissions" class="form-label cb-text-muted">Rola *</label>
                         <select class="form-select cb-input" id="permissions" name="permissions" required>
                             <option value="0">Zákazník</option>
-                            <option value="1">Barber</option>
                             <option value="2">Admin</option>
                         </select>
+                        <div id="permissions_help" class="form-text text-danger"></div>
                     </div>
 
                     <!-- buttons -->

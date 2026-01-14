@@ -15,37 +15,39 @@
     <div class="row">
         <div class="col-md-6 offset-md-3">
             <div class="cb-dark-card">
-                <form action="<?= $link->url('admin.createService') ?>" method="POST">
+                <form action="<?= $link->url('admin.createService') ?>" method="POST" id="createServiceForm">
                     <!-- nazov -->
                     <div class="mb-3">
                         <label for="title" class="form-label cb-text-muted">Názov služby *</label>
                         <input type="text" class="form-control cb-input" id="title" name="title" required>
+                        <div id="title_help" class="form-text text-danger"></div>
                     </div>
 
                     <!-- popis -->
                     <div class="mb-3">
-                        <label for="description" class="form-label cb-text-muted">Popis</label>
-                        <textarea class="form-control cb-input" id="description" name="description" rows="3"></textarea>
+                        <label for="description" class="form-label cb-text-muted">Popis *</label>
+                        <textarea class="form-control cb-input" id="description" name="description" rows="3" required></textarea>
+                        <div id="description_help" class="form-text text-danger"></div>
                     </div>
 
                     <!-- cena -->
                     <div class="mb-3">
                         <label for="price" class="form-label cb-text-muted">Cena (€) *</label>
                         <div class="input-group">
-                            <input type="number" class="form-control cb-input" id="price" name="price"
-                                   min="0" required>
+                            <input type="number" class="form-control cb-input" id="price" name="price" min="0" required>
                             <span class="input-group-text">€</span>
                         </div>
+                        <div id="price_help" class="form-text text-danger"></div>
                     </div>
 
                     <!-- trvanie -->
                     <div class="mb-3">
                         <label for="duration" class="form-label cb-text-muted">Trvanie (minúty) *</label>
                         <div class="input-group">
-                            <input type="number" class="form-control cb-input" id="duration" name="duration"
-                                   min="1" required>
+                            <input type="number" class="form-control cb-input" id="duration" name="duration" min="1" required>
                             <span class="input-group-text">min</span>
                         </div>
+                        <div id="duration_help" class="form-text text-danger"></div>
                     </div>
 
                     <!-- buttons -->

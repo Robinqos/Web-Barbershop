@@ -34,7 +34,7 @@
                             </thead>
                             <tbody>
                             <?php foreach ($barbers as $barber): ?>
-                                <?php $user = $barber->getUser(); ?>rrrrr
+                                <?php $user = $barber->getUser(); ?>
                                 <tr>
                                     <td class="align-middle"><?= $barber->getId() ?></td>
                                     <td class="align-middle">

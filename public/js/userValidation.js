@@ -801,29 +801,426 @@ function initReservation() {
     updateSummary();
 }
 
+// ADMIN - Vytvorenie používateľa
+// ADMIN - Vytvorenie používateľa
+function initAdminUserCreate() {
+    const form = document.getElementById('createUserForm');
+    if (!form) {
+        console.warn('Formulár createUserForm sa nenašiel');
+        return;
+    }
+
+    const fields = {
+        name: document.getElementById('name'),
+        email: document.getElementById('email'),
+        phone: document.getElementById('phone'),
+        password: document.getElementById('password'),
+        permissions: document.getElementById('permissions')
+    };
+
+    const submitBtn = form.querySelector('[type="submit"]');
+
+    // password poziadavky
+    if (fields.password) {
+        createPasswordRequirements(fields.password, 'Heslo pre používateľa:');
+    }
+
+    const validators = {
+        name: () => Validator.validate(fields.name, {
+            required: true,
+            requiredMsg: 'Meno a priezvisko je povinné',
+            custom: (v) => v.replace(/\s/g, '').length >= 4,
+            customMsg: 'Meno musí obsahovať aspoň 4 nemedzerové znaky'
+        }),
+
+        email: () => Validator.validate(fields.email, {
+            required: true,
+            requiredMsg: 'Email je povinný',
+            regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            regexMsg: 'Zadajte platný email (napr. priklad@email.sk)'
+        }),
+
+        phone: () => Validator.validate(fields.phone, {
+            required: true,
+            requiredMsg: 'Telefónne číslo je povinné',
+            custom: (v) => {
+                const digits = v.replace(/\D/g, '');
+                return digits.length >= 9 && digits.length <= 15 && /^[\d\s\-+()]+$/.test(v);
+            },
+            customMsg: 'Telefónne číslo musí obsahovať 9-15 číslic a môže obsahovať iba čísla, medzery, +, - a ()'
+        }),
+
+        password: () => Validator.validate(fields.password, {
+            required: true,
+            requiredMsg: 'Heslo je povinné',
+            custom: (v) => v.length >= 8 && /[A-Z]/.test(v) && /[0-9]/.test(v)
+        }),
+
+        permissions: () => {
+            const value = fields.permissions.value;
+            if (!value) {
+                Validator.showError(fields.permissions, 'Rola je povinná');
+                return false;
+            }
+            Validator.clearError(fields.permissions);
+            return true;
+        }
+    };
+
+    // setup
+    setupField(fields.name, validators.name, updateBtn);
+    setupField(fields.email, validators.email, updateBtn);
+    setupField(fields.phone, validators.phone, updateBtn);
+    setupField(fields.permissions, validators.permissions, updateBtn);
+
+    // pass
+    if (fields.password) {
+        fields.password.addEventListener('input', function() {
+            validators.password();
+            updateBtn();
+        });
+
+        fields.password.addEventListener('focus', function() {
+            const reqDiv = document.getElementById('password_requirements');
+            if (reqDiv) {
+                reqDiv.style.display = 'block';
+            }
+        });
+
+        fields.password.addEventListener('blur', function() {
+            const reqDiv = document.getElementById('password_requirements');
+            if (reqDiv && !this.value.trim()) {
+                reqDiv.style.display = 'none';
+            }
+        });
+    }
+
+    // Submit handler
+    form.addEventListener('submit', function(e) {
+        const isValid = Object.values(validators).every(fn => fn());
+        if (!isValid) {
+            e.preventDefault();
+            const firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) firstInvalid.focus();
+        } else {
+            const reqDiv = document.getElementById('password_requirements');
+            if (reqDiv) {
+                reqDiv.style.display = 'none';
+            }
+        }
+    });
+
+    function updateBtn() {
+        if (!submitBtn) return;
+        const isValid = Object.values(validators).every(fn => fn());
+        submitBtn.disabled = !isValid;
+        submitBtn.classList.toggle('btn-disabled', !isValid);
+    }
+
+    // init
+    Object.values(validators).forEach(fn => fn());
+    updateBtn();
+}
+
+/// ADMIN - Vytvorenie služby
+function initAdminServiceCreate() {
+    const form = document.getElementById('createServiceForm');
+    if (!form) {
+        console.warn('Formulár createServiceForm sa nenašiel');
+        return;
+    }
+
+    const fields = {
+        title: document.getElementById('title'),
+        price: document.getElementById('price'),
+        duration: document.getElementById('duration'),
+        description: document.getElementById('description')
+    };
+
+    const submitBtn = form.querySelector('[type="submit"]');
+
+    const validators = {
+        title: () => Validator.validate(fields.title, {
+            required: true,
+            requiredMsg: 'Názov služby je povinný',
+            custom: (v) => v.replace(/\s/g, '').length >= 2,
+            customMsg: 'Názov musí obsahovať aspoň 2 nemedzerové znaky'
+        }),
+
+        price: () => {
+            const value = fields.price.value.trim();
+
+            // Vytvoríme div pre chybovú správu, ak neexistuje
+            let helpDiv = document.getElementById('price_help');
+            if (!helpDiv) {
+                helpDiv = document.createElement('div');
+                helpDiv.id = 'price_help';
+                helpDiv.className = 'form-text text-danger';
+                fields.price.parentNode.parentNode.appendChild(helpDiv);
+            }
+
+            if (!value) {
+                fields.price.classList.add('is-invalid');
+                helpDiv.textContent = 'Cena je povinná';
+                return false;
+            }
+
+            const num = parseFloat(value);
+            if (isNaN(num) || num <= 0) {
+                fields.price.classList.add('is-invalid');
+                helpDiv.textContent = 'Cena musí byť kladné číslo';
+                return false;
+            }
+
+            if (num > 10000) {
+                fields.price.classList.add('is-invalid');
+                helpDiv.textContent = 'Cena môže byť maximálne 10 000 €';
+                return false;
+            }
+
+            fields.price.classList.remove('is-invalid');
+            helpDiv.textContent = '';
+            return true;
+        },
+
+        duration: () => {
+            const value = fields.duration.value.trim();
+
+            // Vytvoríme div pre chybovú správu, ak neexistuje
+            let helpDiv = document.getElementById('duration_help');
+            if (!helpDiv) {
+                helpDiv = document.createElement('div');
+                helpDiv.id = 'duration_help';
+                helpDiv.className = 'form-text text-danger';
+                fields.duration.parentNode.parentNode.appendChild(helpDiv);
+            }
+
+            if (!value) {
+                fields.duration.classList.add('is-invalid');
+                helpDiv.textContent = 'Trvanie je povinné';
+                return false;
+            }
+
+            const num = parseInt(value);
+            if (isNaN(num) || num <= 0) {
+                fields.duration.classList.add('is-invalid');
+                helpDiv.textContent = 'Trvanie musí byť kladné celé číslo';
+                return false;
+            }
+
+            if (num > 480) {
+                fields.duration.classList.add('is-invalid');
+                helpDiv.textContent = 'Trvanie môže byť maximálne 480 minút (8 hodín)';
+                return false;
+            }
+
+            fields.duration.classList.remove('is-invalid');
+            helpDiv.textContent = '';
+            return true;
+        },
+
+        description: () => Validator.validate(fields.description, {
+            required: true,
+            requiredMsg: 'Popis je povinný',
+            custom: (v) => v.trim().length > 0,
+            customMsg: 'Zadajte popis služby'
+        })
+    };
+
+    // Setup polí
+    setupField(fields.title, validators.title, updateBtn);
+    setupField(fields.description, validators.description, updateBtn);
+
+    // Špeciálne spracovanie pre cenu a trvanie
+    if (fields.price) {
+        fields.price.addEventListener('input', () => {
+            validators.price();
+            updateBtn();
+        });
+        fields.price.addEventListener('blur', () => {
+            validators.price();
+            updateBtn();
+        });
+    }
+
+    if (fields.duration) {
+        fields.duration.addEventListener('input', () => {
+            validators.duration();
+            updateBtn();
+        });
+        fields.duration.addEventListener('blur', () => {
+            validators.duration();
+            updateBtn();
+        });
+    }
+
+    // Submit handler
+    form.addEventListener('submit', function(e) {
+        const isValid = Object.values(validators).every(fn => fn());
+        if (!isValid) {
+            e.preventDefault();
+            const firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) firstInvalid.focus();
+        }
+    });
+
+    function updateBtn() {
+        if (!submitBtn) return;
+        const isValid = Object.values(validators).every(fn => fn());
+        submitBtn.disabled = !isValid;
+        submitBtn.classList.toggle('btn-disabled', !isValid);
+    }
+
+    // Inicializácia
+    Object.values(validators).forEach(fn => fn());
+    updateBtn();
+}
+
+// ADMIN - Vytvorenie barbera
+function initAdminBarberCreate() {
+    const form = document.getElementById('createBarberForm');
+    if (!form) {
+        console.warn('Formulár createBarberForm sa nenašiel');
+        return;
+    }
+
+    const fields = {
+        name: document.getElementById('name'),
+        email: document.getElementById('email'),
+        phone: document.getElementById('phone'),
+        password: document.getElementById('password'),
+        bio: document.getElementById('bio'),
+        photo_url: document.getElementById('photo_url')
+    };
+
+    const submitBtn = form.querySelector('[type="submit"]');
+
+    // Password requirements
+    if (fields.password) {
+        createPasswordRequirements(fields.password, 'Heslo pre barbera:');
+    }
+
+    const validators = {
+        name: () => Validator.validate(fields.name, {
+            required: true,
+            requiredMsg: 'Meno a priezvisko je povinné',
+            custom: (v) => v.replace(/\s/g, '').length >= 4,
+            customMsg: 'Meno musí obsahovať aspoň 4 nemedzerové znaky'
+        }),
+
+        email: () => Validator.validate(fields.email, {
+            required: true,
+            requiredMsg: 'Email je povinný',
+            regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            regexMsg: 'Zadajte platný email (napr. priklad@email.sk)'
+        }),
+
+        phone: () => Validator.validate(fields.phone, {
+            required: true,
+            requiredMsg: 'Telefónne číslo je povinné',
+            custom: (v) => {
+                const digits = v.replace(/\D/g, '');
+                return digits.length >= 9 && digits.length <= 15 && /^[\d\s\-+()]+$/.test(v);
+            },
+            customMsg: 'Telefónne číslo musí obsahovať 9-15 číslic a môže obsahovať iba čísla, medzery, +, - a ()'
+        }),
+
+        password: () => Validator.validate(fields.password, {
+            required: true,
+            requiredMsg: 'Heslo je povinné',
+            custom: (v) => v.length >= 8 && /[A-Z]/.test(v) && /[0-9]/.test(v)
+        }),
+
+        bio: () => Validator.validate(fields.bio, {
+            required: true,
+            requiredMsg: 'Bio je povinné',
+            custom: (v) => v.trim().length > 0,
+            customMsg: 'Zadajte bio barbera'
+        }),
+
+        photo_url: () => {
+            const value = fields.photo_url.value.trim();
+            if (!value) {
+                Validator.showError(fields.photo_url, 'URL fotky je povinná');
+                return false;
+            }
+
+            // Voliteľne: validácia formátu URL
+            if (!value.startsWith('http://') && !value.startsWith('https://')) {
+                Validator.showError(fields.photo_url, 'URL musí začínať s http:// alebo https://');
+                return false;
+            }
+
+            Validator.clearError(fields.photo_url);
+            return true;
+        }
+    };
+
+    // Setup polí
+    setupField(fields.name, validators.name, updateBtn);
+    setupField(fields.email, validators.email, updateBtn);
+    setupField(fields.phone, validators.phone, updateBtn);
+    setupField(fields.bio, validators.bio, updateBtn);
+    setupField(fields.photo_url, validators.photo_url, updateBtn);
+
+    // Password field - špeciálne spracovanie
+    if (fields.password) {
+        fields.password.addEventListener('input', function() {
+            validators.password();
+            updateBtn();
+        });
+
+        fields.password.addEventListener('focus', function() {
+            const reqDiv = document.getElementById('password_requirements');
+            if (reqDiv) {
+                reqDiv.style.display = 'block';
+            }
+        });
+
+        fields.password.addEventListener('blur', function() {
+            const reqDiv = document.getElementById('password_requirements');
+            if (reqDiv && !this.value.trim()) {
+                reqDiv.style.display = 'none';
+            }
+        });
+    }
+
+    // Submit handler
+    form.addEventListener('submit', function(e) {
+        const isValid = Object.values(validators).every(fn => fn());
+        if (!isValid) {
+            e.preventDefault();
+            const firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) firstInvalid.focus();
+        } else {
+            const reqDiv = document.getElementById('password_requirements');
+            if (reqDiv) {
+                reqDiv.style.display = 'none';
+            }
+        }
+    });
+
+    function updateBtn() {
+        if (!submitBtn) return;
+        const isValid = Object.values(validators).every(fn => fn());
+        submitBtn.disabled = !isValid;
+        submitBtn.classList.toggle('btn-disabled', !isValid);
+    }
+
+    // Inicializácia
+    Object.values(validators).forEach(fn => fn());
+    updateBtn();
+}
+
 // Hlavná inicializačná funkcia
 document.addEventListener('DOMContentLoaded', function() {
     // Zisti, ktorý formulár je na stránke a inicializuj príslušnú funkciu
     if (document.getElementById('registerForm')) initRegister();        //ked das do view id="register form, spusti sa initregister
     if (document.getElementById('editForm')) initEdit();
     if (document.getElementById('reservationForm')) initReservation();
-});
 
-// Export pre globálne použitie
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        Validator,
-        setupField,
-        createPasswordRequirements,
-        initRegister,
-        initEdit,
-        initReservation
-    };
-} else {
-    window.Validator = Validator;
-    window.setupField = setupField;
-    window.createPasswordRequirements = createPasswordRequirements;
-    window.initRegister = initRegister;
-    window.initEdit = initEdit;
-    window.initReservation = initReservation;
-}
+    //admin formulare
+    if (document.getElementById('createUserForm')) initAdminUserCreate();
+    if (document.getElementById('createServiceForm')) initAdminServiceCreate();
+    if (document.getElementById('createBarberForm')) initAdminBarberCreate();
+});
