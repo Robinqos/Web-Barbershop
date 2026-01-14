@@ -804,7 +804,7 @@ function initReservation() {
 // Hlavná inicializačná funkcia
 document.addEventListener('DOMContentLoaded', function() {
     // Zisti, ktorý formulár je na stránke a inicializuj príslušnú funkciu
-    if (document.getElementById('registerForm')) initRegister();
+    if (document.getElementById('registerForm')) initRegister();        //ked das do view id="register form, spusti sa initregister
     if (document.getElementById('editForm')) initEdit();
     if (document.getElementById('reservationForm')) initReservation();
 });

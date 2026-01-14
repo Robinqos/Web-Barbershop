@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\Barber;
 use App\Models\Reservation;
 use App\Models\Service;
 use App\Models\User;
@@ -651,6 +652,78 @@ class AdminController extends BaseController
         }
 
         return $this->json($response);
+    }
+    /////////////////////////////////////////////////BARBERS////////////////////////////////////////////////////
+
+    public function barbers(Request $request): Response
+    {
+        $barbers = Barber::getAll(null, [], 'created_at DESC');
+        return $this->html(['barbers' => $barbers], 'barbers');
+    }
+
+    public function createBarber(Request $request): Response
+    {
+        if ($request->isPost()) {
+            $errors = [];
+
+            // Validacie
+            if ($error = $this->validateFullName($request->value('name'), true)) {
+                $errors['name'] = $error;
+            }
+
+            if ($error = $this->validateEmailForAdmin($request->value('email'), 0, true)) {
+                $errors['email'] = $error;
+            }
+
+            if ($error = $this->validatePhone($request->value('phone'), true)) {
+                $errors['phone'] = $error;
+            }
+
+            if ($error = $this->validatePassword($request->value('password'), true)) {
+                $errors['password'] = $error;
+            }
+
+            if (!empty($errors)) {
+                return $this->html(['errors' => $errors], 'barber-create');
+            }
+
+            //najprv ako uzivatela
+            $user = new User();
+            $user->setFullName($request->value('name'));
+            $user->setEmail($request->value('email'));
+            $user->setPhone($request->value('phone'));
+            $user->setPassword($request->value('password'));
+            $user->setPermissions(User::ROLE_BARBER);
+            $user->setCreatedAt(date('Y-m-d H:i:s'));
+            $user->save();
+
+            //potom barber
+            $barber = new Barber();
+            $barber->setUserId($user->getId());
+            $barber->setBio($request->value('bio'));
+            $barber->setPhotoUrl($request->value('photo_url'));
+            $barber->setIsActive((bool)$request->value('is_active', true));
+            $barber->setCreatedAt(date('Y-m-d H:i:s'));
+            $barber->save();
+
+            return $this->redirect($this->url('admin.barbers'));
+        }
+        return $this->html([], 'barber-create');
+    }
+    public function deleteBarber(Request $request): Response
+    {
+        $id = (int) $request->value('id');
+        $barber = \App\Models\Barber::getOne($id);
+
+        if ($barber) {
+            // CASCADE delete - vymaže aj používateľa
+            $user = User::getOne($barber->getUserId());
+            if ($user) {
+                $user->delete();
+            }
+        }
+
+        return $this->redirect($this->url('admin.barbers'));
     }
 
     ///////////////////////////////////////////////////////////VALIDACIE

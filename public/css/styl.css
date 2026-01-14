@@ -30,7 +30,6 @@
     justify-content: center;
     position: relative;
     border: 1px solid var(--cb-gold);
-    border-top: none;
 }
 
 /* Overlay pre citatelnost */

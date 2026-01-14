@@ -16,7 +16,7 @@
             <h1 class="cb-gold-text">Admin sekcia</h1>
             <p class="cb-text-muted">Vitajte, <strong><?= htmlspecialchars($user->getEmail()) ?></strong></p>
 
-            <?php if ($user->getPermissions() >= 2): ?>
+            <?php if ($user->getPermissions() >= \App\Models\User::ROLE_ADMIN): ?>
                 <div class="alert alert-dark">
                     <i class="bi bi-shield-check"></i> Ste prihlásený ako <strong>Admin</strong>
                 </div>

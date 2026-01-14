@@ -2,6 +2,8 @@
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var string|null $error */
 /** @var \Framework\Auth\AppUser $user */
+/** @var \Framework\Support\View $view */
+$view->setLayout('auth');
 ?>
 
 <div class="container mt-5">
