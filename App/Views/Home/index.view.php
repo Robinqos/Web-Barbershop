@@ -34,5 +34,6 @@
             </div>
         </div>
         <?php endforeach; ?>
+        <!-- todo:pridat zobrazenie barberov -->
     </div>
 </section>

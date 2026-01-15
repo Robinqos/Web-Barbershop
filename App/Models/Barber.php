@@ -97,4 +97,8 @@ class Barber extends Model
         $barbers = self::getAll('user_id = ?', [$user_id]);
         return !empty($barbers) ? $barbers[0] : null;
     }
+    public static function getActiveBarbers(): array
+    {
+        return static::getAll('is_active = ?', [1]);
+    }
 }

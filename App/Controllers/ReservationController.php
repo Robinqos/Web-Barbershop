@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Models\Barber;
+use App\Models\Service;
 use App\Models\User;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
@@ -12,12 +14,14 @@ class ReservationController extends BaseController
 {
     public function create(Request $request): Response
     {
-        $services = \App\Models\Service::getAll();
+        $services = Service::getAll();
         $user = $this->app->getAuthenticator()->getUser();
 
+        $barbers = Barber::getAll('is_active = ?', [1], 'id ASC');
         return $this->html([
             'services' => $services,
-            'user' => $user
+            'user' => $user,
+            'barbers' => $barbers
         ]);
     }
 
@@ -44,6 +48,16 @@ class ReservationController extends BaseController
         }
 
         $errors = [];
+
+        $barberId = $request->value('barber_id');
+        if (!$barberId) {
+            $errors[] = 'Neplatné údaje';
+        } else {
+            $barber = \App\Models\Barber::getOne($barberId);
+            if (!$barber || !$barber->getIsActive()) {
+                $errors[] = 'Neplatné údaje';
+            }
+        }
 
         // validacia
         if (!$request->value('service_id')) {
@@ -99,12 +113,14 @@ class ReservationController extends BaseController
         if (!empty($errors)) {
             $services = \App\Models\Service::getAll();
             $user = $this->app->getAuthenticator()->getUser();
+            $barbers = Barber::getAll('is_active = ?', [1], 'created_at ASC');
 
             $errorMessage = 'Formulár obsahuje chyby. Skontrolujte zadané údaje.';
 
             return $this->html([
                 'services' => $services,
                 'user' => $user,
+                'barbers' => $barbers,
                 'error' => $errorMessage,
                 'old' => $this->app->getRequest()->post()
             ], 'create');
@@ -112,6 +128,7 @@ class ReservationController extends BaseController
 
         $reservation = new Reservation();
         $reservation->setServiceId((int)$request->value('service_id'));
+        $reservation->setBarberId((int)$barberId);
         $reservation->setReservationDate($reservationDate);
         $reservation->setStatus(Reservation::STATUS_PENDING);
         $reservation->setNote($note);
@@ -123,7 +140,6 @@ class ReservationController extends BaseController
         if ($isLoggedIn) {
             $user = $this->app->getAuthenticator()->getUser();
             $reservation->setUserId($user->getId());
-            //todo:mozno pridat to, aby sa userove udaje skopirovali do rezervacie
         } else {
             $reservation->setUserId(null);
             $reservation->setGuestName($request->value('guest_name'));
@@ -139,17 +155,19 @@ class ReservationController extends BaseController
     public function confirm(Request $request): Response
     {
         $id = (int) $request->value('id');
-        $reservation = \App\Models\Reservation::getOne($id);
+        $reservation = Reservation::getOne($id);
 
         if (!$reservation) {
             return $this->redirect($this->url("home.index"));
         }
 
         $service = $reservation->getService();
+        $barber = $reservation->getBarber();
 
         return $this->html([
             'reservation' => $reservation,
-            'service' => $service
+            'service' => $service,
+            'barber' => $barber
         ]);
     }
 

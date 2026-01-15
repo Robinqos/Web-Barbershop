@@ -39,6 +39,7 @@
                             <tr>
                                 <th>Dátum a čas</th>
                                 <th>Služba</th>
+                                <th>Barber</th>
                                 <th>Status</th>
                                 <th>Poznámka</th>
                                 <th>Akcie</th>
@@ -47,6 +48,7 @@
                             <tbody>
                             <?php foreach ($reservations as $reservation) :
                                 $service = $reservation->getService();
+                                $barber = $reservation->getBarber();
                                 ?>
                                 <tr>
                                     <td><?= $reservation->getFormattedReservationDate() ?></td>
@@ -56,6 +58,13 @@
                                             <small class="cb-text-muted d-block"><?= $service->getPrice() ?>€</small>
                                         <?php else : ?>
                                             <em>Služba neexistuje</em>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($barber) : ?>
+                                            <?= htmlspecialchars($barber->getName()) ?>
+                                        <?php else : ?>
+                                            <span class="cb-text-muted">Nepriradené</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>

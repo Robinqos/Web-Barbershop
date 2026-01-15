@@ -9,6 +9,8 @@ class Reservation extends Model
     protected int $id;
     protected ?int $user_id;  // NULL pre hosti
     protected int $service_id;
+    protected ?int $barber_id;  // NULL ak napriklad odisiel
+
     protected string $reservation_date;
     protected string $created_at;
     protected ?string $note;
@@ -44,6 +46,30 @@ class Reservation extends Model
     public function setServiceId(int $service_id): void
     {
         $this->service_id = $service_id;
+    }
+
+    public function getBarberId(): ?int
+    {
+        return $this->barber_id;
+    }
+
+    public function setBarberId(?int $barber_id): void
+    {
+        $this->barber_id = $barber_id;
+    }
+
+    public function getBarber(): ?Barber
+    {
+        if ($this->barber_id) {
+            return Barber::getOne($this->barber_id);
+        }
+        return null;
+    }
+
+    public function getBarberName(): string
+    {
+        $barber = $this->getBarber();
+        return $barber ? $barber->getName() : 'Nepriradený kaderník';
     }
 
     public function getReservationDate(): string

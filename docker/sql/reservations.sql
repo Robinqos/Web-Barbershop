@@ -10,7 +10,8 @@ CREATE TABLE `reservations` (
                                 `id` int(11) NOT NULL AUTO_INCREMENT,
                                 `user_id` int(11) DEFAULT NULL,
                                 `service_id` int(11) NOT NULL,
-                                `reservation_date` datetime NOT NULL,
+                                `barber_id` int(11) DEFAULT NULL,
+                                `reservation_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
                                 `created_at` datetime NOT NULL DEFAULT current_timestamp(),
                                 `note` varchar(500) DEFAULT NULL,
                                 `status` enum('pending','cancelled','completed') NOT NULL DEFAULT 'pending',
@@ -20,6 +21,8 @@ CREATE TABLE `reservations` (
                                 PRIMARY KEY (`id`),
                                 KEY `user_id` (`user_id`),
                                 KEY `service_id` (`service_id`),
+                                KEY `barber_id` (`barber_id`),
                                 CONSTRAINT `reservations_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-                                CONSTRAINT `reservations_ibfk_4` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`) ON DELETE CASCADE
+                                CONSTRAINT `reservations_ibfk_4` FOREIGN KEY (`service_id`) REFERENCES `services` (`id`) ON DELETE CASCADE,
+                                CONSTRAINT `reservations_ibfk_5` FOREIGN KEY (`barber_id`) REFERENCES `barbers` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;

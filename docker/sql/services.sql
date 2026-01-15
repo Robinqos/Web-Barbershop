@@ -18,4 +18,5 @@ CREATE TABLE `services` (
 INSERT INTO `services` (`id`, `title`, `price`, `duration`, `description`) VALUES
                                                                                (1,	'Pánsky strih',	15,	60,	'Profesionálne strihanie vlasov podľa vášho vlastného štýlu.'),
                                                                                (2,	'Úprava brady',	10,	30,	'Tvarovanie a úprava brady podľa a vášho vlastného štýlu.'),
-                                                                               (3,	'Kompletná úprava',	20,	60,	'Pánsky strih + úprava brady v jednom. Komplexná pánska úprava s dôrazom na detail a precíznosť.');
+                                                                               (3,	'Kompletná úprava',	20,	60,	'Pánsky strih + úprava brady v jednom. Komplexná pánska úprava s dôrazom na detail a precíznosť.'),
+                                                                               (4,	'Junior strih',	10,	30,	'Moderné trendy účesy pre mládež. Pomôžeme vybrať štýl, ktorý sa páči vám aj vášmu teenagerovi.');

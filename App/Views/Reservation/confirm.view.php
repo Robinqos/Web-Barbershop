@@ -2,6 +2,7 @@
 /** @var \App\Models\Reservation $reservation */
 /** @var \App\Models\Service $service */
 /** @var \Framework\Support\LinkGenerator $link */
+/** @var \App\Models\Barber|null $barber */
 ?>
 
 <div class="container mt-5">
@@ -18,28 +19,42 @@
                 <div class="p-4 bg-dark rounded border border-secondary mb-4">
                     <h5 class="cb-gold-text mb-3">Detaily rezervácie</h5>
 
-                    <div class="row text-center">
-                        <div class="col-md-6 mb-3">
+                    <div class="row text-center mb-3">
+                        <!-- 1.riadok -->
+                        <div class="col-md-3 col-6 mb-3">
                             <strong class="cb-gold-text d-block">Dátum a čas</strong>
                             <span><?= $reservation->getFormattedReservationDate() ?></span>
                         </div>
-                        <div class="col-md-6 mb-3">
+
+                        <div class="col-md-3 col-6 mb-3">
+                            <strong class="cb-gold-text d-block">Barber</strong>
+                            <?php if ($barber): ?>
+                                <span><?= htmlspecialchars($barber->getName()) ?></span>
+                            <?php else: ?>
+                                <span class="cb-text-muted">Nepriradené</span>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="col-md-3 col-6 mb-3">
                             <strong class="cb-gold-text d-block">Služba</strong>
                             <span><?= htmlspecialchars($service->getTitle()) ?></span>
                         </div>
-                        <div class="col-md-6 mb-3">
+
+                        <div class="col-md-3 col-6 mb-3">
                             <strong class="cb-gold-text d-block">Trvanie</strong>
                             <span><?= $service->getDuration() ?> minút</span>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <strong class="cb-gold-text d-block">Cena</strong>
-                            <span class="cb-price"><?= $service->getPrice() ?>€</span>
-                        </div>
                     </div>
 
-                    <hr class="cb-border-secondary">
+                    <!-- 2.riadok -->
+                    <div class="text-center border-top pt-3">
+                        <strong class="cb-gold-text d-block mb-2 fs-5">Celková cena</strong>
+                        <div class="cb-price fs-1"><?= $service->getPrice() ?>€</div>
+                    </div>
 
-                    <div class="text-start">
+                    <hr class="cb-border-secondary mt-4">
+
+                    <div class="text-start mt-3">
                         <p><strong>Meno:</strong> <?= htmlspecialchars($reservation->getCustomerName()) ?></p>
                         <p><strong>Status:</strong>
                             <span class="badge bg-warning"><?= $reservation->getStatus() ?></span>

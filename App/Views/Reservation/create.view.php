@@ -3,6 +3,7 @@
 /** @var string|null $error */
 /** @var \Framework\Auth\AppUser $user */
 /** @var \Framework\Support\View $view */
+/** @var \App\Models\Barber[] $barbers */
 $view->setLayout('auth');
 ?>
 
@@ -21,18 +22,19 @@ $view->setLayout('auth');
 
                 <form method="post" action="<?= $link->url('reservation.store') ?>" id="reservationForm">
                     <div class="row g-3">
+
                         <!-- DÁTUM -->
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label cb-gold-text fw-bold">Dátum *</label>
                                 <label for="reservationDate"></label>
                                 <input type="date"
-                                       id="reservationDate"
-                                       name="date"
-                                       class="form-control bg-dark text-white border-secondary"
-                                       min="<?= date('Y-m-d') ?>"
-                                       max="<?= date('Y-m-d', strtotime('+60 days')) ?>"
-                                       required>
+                                id="reservationDate"
+                                name="date"
+                                class="form-control bg-dark text-white border-secondary"
+                                min="<?= date('Y-m-d') ?>"
+                                max="<?= date('Y-m-d', strtotime('+60 days')) ?>"
+                                required>
                                 <small class="cb-text-muted">Rezervácie možné na 60 dní dopredu</small>
                             </div>
                         </div>
@@ -47,6 +49,33 @@ $view->setLayout('auth');
                                     <!-- Časy sa naplnia dynamicky -->
                                 </select>
                                 <small class="cb-text-muted" id="openingHoursNote"></small>
+                            </div>
+                        </div>
+                        <!-- BARBER -->
+                        <div class="col-12">
+                            <div class="mb-4">
+                                <label class="form-label cb-gold-text fw-bold">Vyberte barbera *</label>
+                                <div class="row g-3">
+                                    <?php foreach ($barbers as $barber): ?>
+                                        <div class="col-md-6">
+                                            <div class="form-check p-3 bg-dark rounded border border-secondary barber-option">
+                                                <input class="form-check-input"
+                                                       type="radio"
+                                                       name="barber_id"
+                                                       id="barber_<?= $barber->getId() ?>"
+                                                       value="<?= $barber->getId() ?>"
+                                                       required
+                                                       data-barber-name="<?= htmlspecialchars($barber->getName()) ?>">
+                                                <label class="form-check-label w-100" for="barber_<?= $barber->getId() ?>">
+                                                    <div class="text-center">
+                                                        <h6 class="mb-0 cb-gold-text"><?= htmlspecialchars($barber->getName()) ?></h6>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div id="barber_help" class="form-text text-danger"></div>
                             </div>
                         </div>
 
@@ -167,12 +196,13 @@ $view->setLayout('auth');
                                 <h5 class="cb-gold-text mb-3 text-center">Zhrnutie rezervácie</h5>
                                 <div class="row text-center">
                                     <div class="col-md-3 mb-2">
-                                        <strong class="cb-gold-text d-block mb-1">Dátum</strong>
+                                        <strong class="cb-gold-text d-block mb-1">Dátum a čas</strong>
                                         <span id="summaryDate" class="cb-text-muted">Nie je vybrané</span>
+                                        <span id="summaryTime" class="cb-text-muted">Nie je vybraný</span>
                                     </div>
                                     <div class="col-md-3 mb-2">
-                                        <strong class="cb-gold-text d-block mb-1">Čas</strong>
-                                        <span id="summaryTime" class="cb-text-muted">Nie je vybraný</span>
+                                        <strong class="cb-gold-text d-block mb-1">Barber</strong>
+                                        <span id="summaryBarber" class="cb-text-muted">Nie je vybraný</span>
                                     </div>
                                     <div class="col-md-3 mb-2">
                                         <strong class="cb-gold-text d-block mb-1">Služba</strong>
