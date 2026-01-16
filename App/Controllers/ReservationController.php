@@ -41,6 +41,53 @@ class ReservationController extends BaseController
         return $this->html(compact('reservations'));
     }
 
+    public function getOccupiedTimes(Request $request): Response
+    {
+        $barberId = (int) $request->value('barber_id');
+        $date = $request->value('date');
+
+        if (!$barberId || !$date) {
+            error_log("Missing parameters");
+            return $this->json(['error' => 'Missing parameters', 'debug' => ['barber_id' => $barberId, 'date' => $date]]);
+        }
+
+        // rezervacia barbera v tej den
+        $reservations = Reservation::getAll(
+            'barber_id = ? AND DATE(reservation_date) = ? AND status IN (?, ?)',
+            [$barberId, $date, Reservation::STATUS_PENDING, Reservation::STATUS_COMPLETED]
+        );
+
+        error_log("Found " . count($reservations) . " reservations for barber $barberId on $date");
+
+        $occupiedTimes = [];
+
+        foreach ($reservations as $reservation) {
+            $reservationDate = new \DateTime($reservation->getReservationDate());
+            $timeSlot = $reservationDate->format('H:i');
+
+            //pridaj cas rezervacie
+            $occupiedTimes[] = $timeSlot;
+            error_log("Added occupied time: $timeSlot");
+
+            // ak trva 60 tak aj dalsi slot
+            $service = $reservation->getService();
+            if ($service && $service->getDuration() == 60) {
+                $nextTime = (clone $reservationDate)->modify('+30 minutes');
+                $nextTimeSlot = $nextTime->format('H:i');
+                $occupiedTimes[] = $nextTimeSlot;
+                error_log("Added next occupied time (60 min service): $nextTimeSlot");
+            }
+        }
+
+        // odstrani duplikaty
+        $occupiedTimes = array_unique($occupiedTimes);
+        sort($occupiedTimes);
+
+        error_log("Returning occupied times: " . implode(', ', $occupiedTimes));
+
+        return $this->json($occupiedTimes);
+    }
+
     public function store(Request $request): Response
     {
         if (!$request->hasValue('submit')) {
@@ -74,6 +121,22 @@ class ReservationController extends BaseController
         // kontrola datumu a udajov
         if (strtotime($reservationDate) < time()) {
             $errors[] = 'Neplatné údaje';
+        }
+        //obsadenost barbera
+        if ($barberId && $request->value('date') && $request->value('time') && $request->value('service_id')) {
+            $service = Service::getOne((int)$request->value('service_id'));
+            $serviceDuration = $service ? $service->getDuration() : 30;
+
+            // ci je obsadeny vtedy
+            $occupied = $this->isBarberOccupied(
+                $barberId,
+                $reservationDate,
+                $serviceDuration
+            );
+
+            if ($occupied) {
+                $errors[] = 'Barber je v tomto čase už obsadený. Vyberte iný čas.';
+            }
         }
 
         $isLoggedIn = $this->app->getAppUser()->isLoggedIn();
@@ -199,5 +262,35 @@ class ReservationController extends BaseController
         $reservation->cancel();
 
         return $this->redirect($this->url("auth.index"));
+    }
+
+    private function isBarberOccupied(int $barberId, string $reservationDateTime, int $serviceDuration): bool
+    {
+        $reservationTime = new \DateTime($reservationDateTime);
+        $reservationEnd = (clone $reservationTime)->modify("+{$serviceDuration} minutes");
+
+        // rezervacie v dany den
+        $reservations = Reservation::getAll(
+            'barber_id = ? AND DATE(reservation_date) = ? AND status IN (?, ?)',
+            [
+                $barberId,
+                $reservationTime->format('Y-m-d'),
+                Reservation::STATUS_PENDING,
+                Reservation::STATUS_COMPLETED
+            ]
+        );
+
+        foreach ($reservations as $reservation) {
+            $existingStart = new \DateTime($reservation->getReservationDate());
+            $existingService = $reservation->getService();
+            $existingEnd = (clone $existingStart)->modify("+{$existingService->getDuration()} minutes");
+
+            // prekrytie casov
+            if ($reservationTime < $existingEnd && $reservationEnd > $existingStart) {
+                return true; //obsadeny
+            }
+        }
+
+        return false; // barber volny
     }
 }

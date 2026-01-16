@@ -39,6 +39,10 @@ class AuthController extends BaseController
             return $this->redirect($this->url("admin.index"));
         }
 
+        if ($user->getPermissions() === User::ROLE_BARBER) {
+            return $this->redirect($this->url("barber.index"));
+        }
+
         $reservations = \App\Models\Reservation::getAll(
             'user_id = ? AND status IN ("pending", "completed")',
             [$user->getId()],

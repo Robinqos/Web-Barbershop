@@ -60,10 +60,7 @@ class Reservation extends Model
 
     public function getBarber(): ?Barber
     {
-        if ($this->barber_id) {
-            return Barber::getOne($this->barber_id);
-        }
-        return null;
+        return $this->barber_id ? Barber::getOne($this->barber_id) : null;
     }
 
     public function getBarberName(): string

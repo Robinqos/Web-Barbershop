@@ -10,7 +10,7 @@ class Barber extends Model
     protected int $user_id;
     protected ?string $bio;
     protected ?string $photo_url;
-    protected bool $is_active;
+    protected int $is_active;
     protected string $created_at;
 
     public function getId(): int
@@ -48,12 +48,12 @@ class Barber extends Model
         $this->photo_url = $photo_url;
     }
 
-    public function getIsActive(): bool
+    public function getIsActive(): int
     {
         return $this->is_active;
     }
 
-    public function setIsActive(bool $is_active): void
+    public function setIsActive(int $is_active): void
     {
         $this->is_active = $is_active;
     }
@@ -72,6 +72,10 @@ class Barber extends Model
     public function getUser(): ?User
     {
         return User::getOne($this->user_id);
+    }
+    public static function getOneByUserId(int $userId): ?self
+    {
+        return self::getOne('user_id = ?', [$userId]);
     }
 
     public function getName(): string

@@ -19,10 +19,32 @@
             <?php if ($barber->getIsActive()): ?>
                 <div class="alert alert-dark">
                     <i class="bi bi-scissors"></i> Ste prihlásený ako <strong>Barber</strong>
+                    <div class="mt-2">
+                        <!-- deaktivacia -->
+                        <form method="POST" action="<?= $link->url('barber.toggleActivation') ?>"
+                              class="d-inline-block"
+                              onsubmit="return confirm('Naozaj sa chcete deaktivovať? Po deaktivácii nebudete môcť prijímať nové rezervácie.')">
+                            <button type="submit" class="btn btn-warning btn-sm">
+                                <i class="bi bi-power"></i> Deaktivovať účet
+                            </button>
+                        </form>
+                        <small class="ms-2 cb-text-muted">(napr. ak idete na dovolenku)</small>
+                    </div>
                 </div>
             <?php else: ?>
                 <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle"></i> Váš účet je <strong>neaktívny</strong>. Kontaktujte administrátora.
+                    <i class="bi bi-exclamation-triangle"></i> Váš účet je <strong>neaktívny</strong>.
+                    <div class="mt-2">
+                        <!-- aktivacia -->
+                        <form method="POST" action="<?= $link->url('barber.toggleActivation') ?>"
+                              class="d-inline-block"
+                              onsubmit="return confirm('Naozaj sa chcete aktivovať?')">
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="bi bi-power"></i> Aktivovať účet
+                            </button>
+                        </form>
+                        <small class="ms-2 cb-text-muted">Váš účet bude opäť viditeľný pre zákazníkov</small>
+                    </div>
                 </div>
             <?php endif; ?>
         </div>

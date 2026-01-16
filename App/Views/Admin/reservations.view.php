@@ -3,6 +3,9 @@
 /** @var array $reservations */
 /** @var string|null $filter */
 /** @var \App\Models\Service[] $services */
+
+use App\Models\Barber;
+
 ?>
 
 <div class="container-fluid mt-4">
@@ -42,6 +45,7 @@
                                 <th class="text-center">Zákazník</th>
                                 <th class="text-center">Email</th>
                                 <th class="text-center">Telefón</th>
+                                <th class="text-center">Barber</th>
                                 <th class="text-center">Služba</th>
                                 <th class="text-center">Status</th>
                                 <th class="text-center" style="width: 20%;">Poznámka</th>
@@ -136,7 +140,34 @@
                                             </div>
                                         <?php endif; ?>
                                     </td>
-
+                                    <!-- barber -->
+                                    <td class="align-middle">
+                                        <?php
+                                        $barberOptions = [];
+                                        foreach (Barber::getAll() as $barberModel) {
+                                            $barberOptions[] = [
+                                                'value' => $barberModel->getId(),
+                                                'text' => $barberModel->getName()
+                                            ];
+                                        }
+                                        ?>
+                                        <div class="editable-cell mx-auto w-100 d-flex justify-content-center align-items-center"
+                                             style="min-height: 40px;"
+                                             data-id="<?= $reservation->getId() ?>"
+                                             data-field="barber_id"
+                                             data-type="select"
+                                             data-entity="reservation"
+                                             data-render="barber"
+                                             data-options='<?= json_encode($barberOptions) ?>'
+                                             title="Kliknite pre výber barbera">
+                                            <div class="text-truncate">
+                                                <?php
+                                                $barber = $reservation->getBarber();
+                                                echo $barber ? htmlspecialchars($barber->getName()) : 'Nie je priradený';
+                                                ?>
+                                            </div>
+                                        </div>
+                                    </td>
                                     <!-- sluzba -->
                                     <td class="align-middle">
                                         <?php

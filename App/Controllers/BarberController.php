@@ -132,4 +132,32 @@ class BarberController extends BaseController
 
         return $this->redirect($this->url("barber.index"));
     }
+    public function toggleActivation(Request $request): Response
+    {
+        $user = $this->app->getAuthenticator()->getUser();
+        $barber = Barber::getByUserId($user->getId());
+
+        if (!$barber) {
+            return $this->redirect($this->url("barber.index"));
+        }
+
+        // ci nema ziadne nadchadzajuce rezervacie
+        if ($barber->getIsActive()) {
+            $upcomingReservations = Reservation::getAll(
+                'barber_id = ? AND reservation_date > NOW() AND status = "pending"',
+                [$barber->getId()]
+            );
+
+            if (!empty($upcomingReservations)) {
+                //todo:potvrdenie ze zrusil
+                return $this->redirect($this->url("barber.index"));
+            }
+        }
+
+        // Prepneme stav
+        $barber->setIsActive(!$barber->getIsActive());
+        $barber->save();
+
+        return $this->redirect($this->url("barber.index"));
+    }
 }
