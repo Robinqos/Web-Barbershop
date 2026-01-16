@@ -23,9 +23,14 @@ const Validator = {
 
     validate(field, rules) {
         const value = field.value.trim();
-
+        //ak je prazdne a povinne, zobraz iba ak nieco user spravil
         if (!value && rules.required) {
-            this.showError(field, rules.requiredMsg || 'Toto pole je povinné');
+            //ci uz malo focus alebo input
+            if (field.dataset.interacted === 'true') {
+                this.showError(field, rules.requiredMsg || 'Toto pole je povinné');
+                return false;
+            }
+            // nezobrazuj chybu
             return false;
         }
 
@@ -53,7 +58,12 @@ const Validator = {
 function setupField(field, validatorFn, updateBtnFn = null) {
     if (!field) return;
 
+    // nastavim enteracted na false
+    field.dataset.interacted = 'false';
+
     const handler = () => {
+        // 1.input/focusout
+        field.dataset.interacted = 'true';
         validatorFn();
         if (updateBtnFn) updateBtnFn();
     };
@@ -179,7 +189,7 @@ function generateTimeSlots(dayOfWeek) {
     return { timeSlots, note };
 }
 
-function populateTimeSlots(dateInput, timeSelect, openingHoursNote) {
+async function populateTimeSlots(dateInput, timeSelect, openingHoursNote, barberId = null, serviceDuration = 30) {
     const dateString = dateInput.value;
 
     if (!dateString) {
@@ -192,13 +202,66 @@ function populateTimeSlots(dateInput, timeSelect, openingHoursNote) {
     const { timeSlots, note } = generateTimeSlots(dayOfWeek);
 
     let options = '<option value="">Vyberte čas</option>';
+
+    // ak je barber a datum, nacitaj obsadene
+    let occupiedTimes = [];
+    if (barberId && dateString) {
+        occupiedTimes = await fetchOccupiedTimes(barberId, dateString);
+    }
+
+    // kazdy slot check
     timeSlots.forEach(timeSlot => {
-        options += `<option value="${timeSlot}">${timeSlot}</option>`;
+        let isOccupied;
+
+        // 60min=2sloty
+        if (serviceDuration === 60) {
+            const nextSlot = getNextTimeSlot(timeSlot);
+            const twoSlotsOccupied = occupiedTimes.includes(timeSlot) || occupiedTimes.includes(nextSlot);
+
+            // ci existuje dalsi slot
+            const nextSlotExists = timeSlots.includes(nextSlot);
+            isOccupied = twoSlotsOccupied || !nextSlotExists;
+        } else {
+            //30min = 1slot
+            isOccupied = occupiedTimes.includes(timeSlot);
+        }
+
+        const disabledText = isOccupied ? ' (obsadené)' : '';
+        options += `<option value="${timeSlot}" ${isOccupied ? 'disabled' : ''}>${timeSlot}${disabledText}</option>`;
     });
 
     timeSelect.innerHTML = options;
     if (openingHoursNote) openingHoursNote.textContent = note;
     timeSelect.value = '';
+}
+
+// helper method na dalsi slot
+function getNextTimeSlot(timeSlot) {
+    const [hours, minutes] = timeSlot.split(':').map(Number);
+    let nextHours = hours;
+    let nextMinutes = minutes + 30;
+
+    if (nextMinutes >= 60) {
+        nextHours += 1;
+        nextMinutes = 0;
+    }
+
+    return `${String(nextHours).padStart(2, '0')}:${String(nextMinutes).padStart(2, '0')}`;
+}
+
+// nacitanie obsadenych casov barbera
+async function fetchOccupiedTimes(barberId, date) {
+    try {
+        const response = await fetch(`/?c=reservation&a=getOccupiedTimes&barber_id=${barberId}&date=${date}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch occupied times');
+        }
+        const occupiedTimes = await response.json();
+        return occupiedTimes || [];
+    } catch (error) {
+        console.error('Error fetching occupied times:', error);
+        return [];
+    }
 }
 
 function updateReservationSummary(dateInput, timeSelect) {
@@ -525,6 +588,7 @@ function initReservation() {
 
     const dateInput = document.getElementById('reservationDate');
     const timeSelect = document.getElementById('timeSelect');
+    const barberRadios = document.querySelectorAll('input[name="barber_id"]');
     const serviceRadios = document.querySelectorAll('input[name="service_id"]');
     const openingHoursNote = document.getElementById('openingHoursNote');
     const customerName = document.getElementById('customerName');
@@ -543,10 +607,27 @@ function initReservation() {
         }
     }
 
+    // ziskanie vybratych hodnot
+    function getSelectedValues() {
+        const selectedBarber = document.querySelector('input[name="barber_id"]:checked');
+        const selectedService = document.querySelector('input[name="service_id"]:checked');
+
+        return {
+            barberId: selectedBarber ? selectedBarber.value : null,
+            serviceDuration: selectedService ? parseInt(selectedService.dataset.duration) : 30
+        };
+    }
+
+    // casy s obsadenostou
+    async function updateTimeSlots() {
+        const { barberId, serviceDuration } = getSelectedValues();
+        await populateTimeSlots(dateInput, timeSelect, openingHoursNote, barberId, serviceDuration);
+    }
+
     // Funkcie pre časové sloty
     if (dateInput && timeSelect) {
-        dateInput.addEventListener('change', function() {
-            populateTimeSlots(dateInput, timeSelect, openingHoursNote);
+        dateInput.addEventListener('change', async function() {
+            await updateTimeSlots();
             updateSummary();
             validators.date();
             validators.dateTimeFuture();
@@ -565,7 +646,7 @@ function initReservation() {
 
     if (serviceRadios.length > 0) {
         serviceRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
+            radio.addEventListener('change', async function() {
                 updateSummary();
                 validators.service();
 
@@ -582,12 +663,13 @@ function initReservation() {
                     }
                 }
 
+                // casy podla trvania sluzby
+                await updateTimeSlots();
                 updateBtn();
             });
         });
     }
 
-    // Validátory pre rezerváciu
     const validators = {
         date: () => Validator.validate(dateInput, {
             required: true,
@@ -604,18 +686,25 @@ function initReservation() {
         }),
 
         time: () => {
-            if (!timeSelect.value) {
+            const value = timeSelect.value;
+            if (!value && timeSelect.dataset.interacted === 'true') {
                 Validator.showError(timeSelect, 'Čas je povinný');
                 return false;
             }
 
-            if (timeSelect.value === '') {
-                Validator.showError(timeSelect, 'Vyberte platný čas');
+            if (!value) {
+                return false;
+            }
+
+            // ci nieje cas disabled
+            const selectedOption = timeSelect.options[timeSelect.selectedIndex];
+            if (selectedOption && selectedOption.disabled) {
+                Validator.showError(timeSelect, 'Tento čas je už obsadený. Vyberte iný čas.');
                 return false;
             }
 
             const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-            if (!timeRegex.test(timeSelect.value)) {
+            if (!timeRegex.test(value)) {
                 Validator.showError(timeSelect, 'Neplatný formát času');
                 return false;
             }
@@ -623,13 +712,35 @@ function initReservation() {
             Validator.clearError(timeSelect);
             return true;
         },
+        barber: () => {
+            const selectedBarber = Array.from(barberRadios).find(radio => radio.checked);
+            if (!selectedBarber) {
+                // ckeck ci uz klikol na radiobutt
+                let anyBarberInteracted = false;
+                barberRadios.forEach(radio => {
+                    if (radio.dataset.interacted === 'true') anyBarberInteracted = true;
+                });
+
+                if (anyBarberInteracted) {
+                    document.querySelectorAll('.barber-option').forEach(el => {
+                        el.classList.add('border-danger');
+                    });
+                    return false;
+                }
+                return false;
+            }
+            document.querySelectorAll('.barber-option').forEach(el => {
+                el.classList.remove('border-danger');
+            });
+            return true;
+        },
 
         dateTimeFuture: () => {
             if (!dateInput.value || !timeSelect.value) {
-                return true; // Ak nie je dátum alebo čas, nevaliduj
+                return true;
             }
 
-            // Zložiť dátum a čas
+            // spoj
             const dateTimeStr = dateInput.value + ' ' + timeSelect.value + ':00';
             const selectedDate = new Date(dateTimeStr);
             const now = new Date();
@@ -650,53 +761,37 @@ function initReservation() {
             customMsg: 'Meno musí obsahovať aspoň 4 nemedzerové znaky'
         }),
 
-        phone: () => {
-            const value = phone.value;
-            const digits = value.replace(/\D/g, '');
+        phone: () => Validator.validate(phone, {
+            required: true,
+            requiredMsg: 'Telefónne číslo je povinné',
+            custom: (v) => {
+                const digits = v.replace(/\D/g, '');
+                return digits.length >= 9 && digits.length <= 15 && /^[\d\s\-+()]+$/.test(v);
+            },
+            customMsg: 'Telefónne číslo musí obsahovať 9-15 číslic a môže obsahovať iba čísla, medzery, +, - a ()'
+        }),
 
-            if (!value.trim()) {
-                Validator.showError(phone, 'Telefónne číslo je povinné');
-                return false;
-            }
-
-            if (digits.length < 9 || digits.length > 15) {
-                Validator.showError(phone, 'Telefónne číslo musí obsahovať 9-15 číslic');
-                return false;
-            }
-
-            if (!/^[\d\s\-+()]+$/.test(value)) {
-                Validator.showError(phone, 'Môže obsahovať iba čísla, medzery, +, - a ()');
-                return false;
-            }
-
-            Validator.clearError(phone);
-            return true;
-        },
-
-        email: () => {
-            const value = email.value.trim();
-
-            if (!value) {
-                Validator.showError(email, 'Email je povinný');
-                return false;
-            }
-
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(value)) {
-                Validator.showError(email, 'Zadajte platný email (napr. priklad@email.sk)');
-                return false;
-            }
-
-            Validator.clearError(email);
-            return true;
-        },
+        email: () => Validator.validate(email, {
+            required: true,
+            requiredMsg: 'Email je povinný',
+            regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            regexMsg: 'Zadajte platný email (napr. priklad@email.sk)'
+        }),
 
         service: () => {
             const selectedService = Array.from(serviceRadios).find(radio => radio.checked);
             if (!selectedService) {
-                document.querySelectorAll('.service-option').forEach(el => {
-                    el.classList.add('border-danger');
+                // montrola ci niektory radio nebol uz zapnuty
+                let anyRadioInteracted = false;
+                serviceRadios.forEach(radio => {
+                    if (radio.dataset.interacted === 'true') anyRadioInteracted = true;
                 });
+
+                if (anyRadioInteracted) {
+                    document.querySelectorAll('.service-option').forEach(el => {
+                        el.classList.add('border-danger');
+                    });
+                }
                 return false;
             }
             document.querySelectorAll('.service-option').forEach(el => {
@@ -709,7 +804,7 @@ function initReservation() {
             if (!noteTextarea) return true;
 
             const note = noteTextarea.value;
-            if (note.length > 70) {
+            if (note.length > 70 && noteTextarea.dataset.interacted === 'true') {
                 Validator.showError(noteTextarea, 'Poznámka môže mať maximálne 70 znakov');
                 return false;
             }
@@ -718,6 +813,37 @@ function initReservation() {
             return true;
         }
     };
+
+    // event listener pre barbera
+    if (barberRadios.length > 0) {
+        barberRadios.forEach(radio => {
+            radio.addEventListener('change', async function() {
+                // oznaci vsetky ako interacted
+                barberRadios.forEach(r => r.dataset.interacted = 'true');
+
+                validators.barber();
+                updateSummary();
+                updateBtn();
+
+                // vizualna zmena vybraneho barbera
+                document.querySelectorAll('.barber-option').forEach(el => {
+                    el.classList.remove('border-gold');
+                    el.style.backgroundColor = '';
+                });
+
+                if (this.checked) {
+                    const parent = this.closest('.barber-option');
+                    if (parent) {
+                        parent.classList.add('border-gold');
+                        parent.style.backgroundColor = 'rgba(212, 175, 55, 0.1)';
+                    }
+                }
+
+                // aktualuzuj casove sloty
+                await updateTimeSlots();
+            });
+        });
+    }
 
     // Setup fields
     if (customerName) {
@@ -754,6 +880,14 @@ function initReservation() {
     }
 
     function updateSummary() {
+        //barber
+        const selectedBarber = document.querySelector('input[name="barber_id"]:checked');
+        if (selectedBarber) {
+            const barberName = selectedBarber.dataset.barberName;
+            const summaryBarber = document.getElementById('summaryBarber');
+            if (summaryBarber) summaryBarber.textContent = barberName;
+        }
+
         if (dateInput && dateInput.value) {
             const date = new Date(dateInput.value);
             const summaryDate = document.getElementById('summaryDate');
@@ -787,19 +921,28 @@ function initReservation() {
 
     // Inicializácia
     if (dateInput && dateInput.value) {
-        populateTimeSlots(dateInput, timeSelect, openingHoursNote);
+        const today = new Date().toISOString().split('T')[0];
+        if (!dateInput.value) {
+            dateInput.value = today;
+        }
+        // pocakaj na update time slots
+        setTimeout(async () => {
+            await updateTimeSlots();
+        }, 100);
     } else {
         const today = new Date().toISOString().split('T')[0];
         if (dateInput) {
             dateInput.value = today;
-            populateTimeSlots(dateInput, timeSelect, openingHoursNote);
+            setTimeout(async () => {
+                await updateTimeSlots();
+            }, 100);
         }
     }
 
     Object.values(validators).forEach(fn => fn());
     updateBtn();
     updateSummary();
-}
+    }
 
 // ADMIN - Vytvorenie používateľa
 // ADMIN - Vytvorenie používateľa
@@ -925,10 +1068,7 @@ function initAdminUserCreate() {
 /// ADMIN - Vytvorenie služby
 function initAdminServiceCreate() {
     const form = document.getElementById('createServiceForm');
-    if (!form) {
-        console.warn('Formulár createServiceForm sa nenašiel');
-        return;
-    }
+    if (!form) return;
 
     const fields = {
         title: document.getElementById('title'),
@@ -947,77 +1087,25 @@ function initAdminServiceCreate() {
             customMsg: 'Názov musí obsahovať aspoň 2 nemedzerové znaky'
         }),
 
-        price: () => {
-            const value = fields.price.value.trim();
+        price: () => Validator.validate(fields.price, {
+            required: true,
+            requiredMsg: 'Cena je povinná',
+            custom: (v) => {
+                const num = parseFloat(v);
+                return !isNaN(num) && num > 0 && num <= 10000;
+            },
+            customMsg: 'Cena musí byť kladné číslo maximálne do 10 000 €'
+        }),
 
-            // Vytvoríme div pre chybovú správu, ak neexistuje
-            let helpDiv = document.getElementById('price_help');
-            if (!helpDiv) {
-                helpDiv = document.createElement('div');
-                helpDiv.id = 'price_help';
-                helpDiv.className = 'form-text text-danger';
-                fields.price.parentNode.parentNode.appendChild(helpDiv);
-            }
-
-            if (!value) {
-                fields.price.classList.add('is-invalid');
-                helpDiv.textContent = 'Cena je povinná';
-                return false;
-            }
-
-            const num = parseFloat(value);
-            if (isNaN(num) || num <= 0) {
-                fields.price.classList.add('is-invalid');
-                helpDiv.textContent = 'Cena musí byť kladné číslo';
-                return false;
-            }
-
-            if (num > 10000) {
-                fields.price.classList.add('is-invalid');
-                helpDiv.textContent = 'Cena môže byť maximálne 10 000 €';
-                return false;
-            }
-
-            fields.price.classList.remove('is-invalid');
-            helpDiv.textContent = '';
-            return true;
-        },
-
-        duration: () => {
-            const value = fields.duration.value.trim();
-
-            // Vytvoríme div pre chybovú správu, ak neexistuje
-            let helpDiv = document.getElementById('duration_help');
-            if (!helpDiv) {
-                helpDiv = document.createElement('div');
-                helpDiv.id = 'duration_help';
-                helpDiv.className = 'form-text text-danger';
-                fields.duration.parentNode.parentNode.appendChild(helpDiv);
-            }
-
-            if (!value) {
-                fields.duration.classList.add('is-invalid');
-                helpDiv.textContent = 'Trvanie je povinné';
-                return false;
-            }
-
-            const num = parseInt(value);
-            if (isNaN(num) || num <= 0) {
-                fields.duration.classList.add('is-invalid');
-                helpDiv.textContent = 'Trvanie musí byť kladné celé číslo';
-                return false;
-            }
-
-            if (num > 480) {
-                fields.duration.classList.add('is-invalid');
-                helpDiv.textContent = 'Trvanie môže byť maximálne 480 minút (8 hodín)';
-                return false;
-            }
-
-            fields.duration.classList.remove('is-invalid');
-            helpDiv.textContent = '';
-            return true;
-        },
+        duration: () => Validator.validate(fields.duration, {
+            required: true,
+            requiredMsg: 'Trvanie je povinné',
+            custom: (v) => {
+                const num = parseInt(v);
+                return !isNaN(num) && num > 0 && num <= 480;
+            },
+            customMsg: 'Trvanie musí byť kladné celé číslo maximálne 480 minút (8 hodín)'
+        }),
 
         description: () => Validator.validate(fields.description, {
             required: true,
@@ -1027,34 +1115,13 @@ function initAdminServiceCreate() {
         })
     };
 
-    // Setup polí
+    // Setup polí - všetky používajú setupField()
     setupField(fields.title, validators.title, updateBtn);
+    setupField(fields.price, validators.price, updateBtn);
+    setupField(fields.duration, validators.duration, updateBtn);
     setupField(fields.description, validators.description, updateBtn);
 
-    // Špeciálne spracovanie pre cenu a trvanie
-    if (fields.price) {
-        fields.price.addEventListener('input', () => {
-            validators.price();
-            updateBtn();
-        });
-        fields.price.addEventListener('blur', () => {
-            validators.price();
-            updateBtn();
-        });
-    }
-
-    if (fields.duration) {
-        fields.duration.addEventListener('input', () => {
-            validators.duration();
-            updateBtn();
-        });
-        fields.duration.addEventListener('blur', () => {
-            validators.duration();
-            updateBtn();
-        });
-    }
-
-    // Submit handler
+    // Submit handler - PÔVODNÝ
     form.addEventListener('submit', function(e) {
         const isValid = Object.values(validators).every(fn => fn());
         if (!isValid) {
@@ -1071,18 +1138,15 @@ function initAdminServiceCreate() {
         submitBtn.classList.toggle('btn-disabled', !isValid);
     }
 
-    // Inicializácia
-    Object.values(validators).forEach(fn => fn());
+    // Inicializácia - NEVOĽAŤ validátory, iba updateBtn!
     updateBtn();
 }
 
 // ADMIN - Vytvorenie barbera
+// ADMIN - Vytvorenie barbera - OPRAVENÉ
 function initAdminBarberCreate() {
     const form = document.getElementById('createBarberForm');
-    if (!form) {
-        console.warn('Formulár createBarberForm sa nenašiel');
-        return;
-    }
+    if (!form) return;
 
     const fields = {
         name: document.getElementById('name'),
@@ -1138,54 +1202,23 @@ function initAdminBarberCreate() {
             customMsg: 'Zadajte bio barbera'
         }),
 
-        photo_url: () => {
-            const value = fields.photo_url.value.trim();
-            if (!value) {
-                Validator.showError(fields.photo_url, 'URL fotky je povinná');
-                return false;
-            }
-
-            // Voliteľne: validácia formátu URL
-            if (!value.startsWith('http://') && !value.startsWith('https://')) {
-                Validator.showError(fields.photo_url, 'URL musí začínať s http:// alebo https://');
-                return false;
-            }
-
-            Validator.clearError(fields.photo_url);
-            return true;
-        }
+        photo_url: () => Validator.validate(fields.photo_url, {
+            required: true,
+            requiredMsg: 'URL fotky je povinná',
+            custom: (v) => v.startsWith('http://') || v.startsWith('https://'),
+            customMsg: 'URL musí začínať s http:// alebo https://'
+        })
     };
 
-    // Setup polí
+    // Setup polí - všetky používajú setupField()
     setupField(fields.name, validators.name, updateBtn);
     setupField(fields.email, validators.email, updateBtn);
     setupField(fields.phone, validators.phone, updateBtn);
     setupField(fields.bio, validators.bio, updateBtn);
     setupField(fields.photo_url, validators.photo_url, updateBtn);
+    setupField(fields.password, validators.password, updateBtn);
 
-    // Password field - špeciálne spracovanie
-    if (fields.password) {
-        fields.password.addEventListener('input', function() {
-            validators.password();
-            updateBtn();
-        });
-
-        fields.password.addEventListener('focus', function() {
-            const reqDiv = document.getElementById('password_requirements');
-            if (reqDiv) {
-                reqDiv.style.display = 'block';
-            }
-        });
-
-        fields.password.addEventListener('blur', function() {
-            const reqDiv = document.getElementById('password_requirements');
-            if (reqDiv && !this.value.trim()) {
-                reqDiv.style.display = 'none';
-            }
-        });
-    }
-
-    // Submit handler
+    // Submit handler - PÔVODNÝ
     form.addEventListener('submit', function(e) {
         const isValid = Object.values(validators).every(fn => fn());
         if (!isValid) {
@@ -1207,8 +1240,6 @@ function initAdminBarberCreate() {
         submitBtn.classList.toggle('btn-disabled', !isValid);
     }
 
-    // Inicializácia
-    Object.values(validators).forEach(fn => fn());
     updateBtn();
 }
 

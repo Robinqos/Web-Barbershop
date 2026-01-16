@@ -28,7 +28,9 @@
                                 <th class="text-center">Email</th>
                                 <th class="text-center">Telefón</th>
                                 <th class="text-center">Bio</th>
+                                <th class="text-center">URL fotky</th>
                                 <th class="text-center">Status</th>
+                                <th class="text-center">Dátum pridania</th>
                                 <th class="text-center">Akcie</th>
                             </tr>
                             </thead>
@@ -37,24 +39,98 @@
                                 <?php $user = $barber->getUser(); ?>
                                 <tr>
                                     <td class="align-middle"><?= $barber->getId() ?></td>
+                                    <!-- meno -->
                                     <td class="align-middle">
-                                        <?= htmlspecialchars($barber->getName()) ?>
+                                        <div class="editable-cell"
+                                             data-id="<?= $barber->getId() ?>"
+                                             data-field="name"
+                                             data-type="text"
+                                             data-entity="barber"
+                                             title="Kliknite pre úpravu">
+                                            <?= htmlspecialchars($barber->getName()) ?>
+                                        </div>
                                     </td>
+                                    <!-- email -->
                                     <td class="align-middle">
-                                        <?= htmlspecialchars($barber->getEmail()) ?>
+                                        <div class="editable-cell"
+                                             data-id="<?= $barber->getId() ?>"
+                                             data-field="email"
+                                             data-type="email"
+                                             data-entity="barber"
+                                             title="Kliknite pre úpravu">
+                                            <?= htmlspecialchars($barber->getEmail()) ?>
+                                        </div>
                                     </td>
+                                    <!-- cislo -->
                                     <td class="align-middle">
-                                        <?= htmlspecialchars($barber->getPhone()) ?>
+                                        <div class="editable-cell"
+                                             data-id="<?= $barber->getId() ?>"
+                                             data-field="phone"
+                                             data-type="text"
+                                             data-entity="barber"
+                                             title="Kliknite pre úpravu">
+                                            <?= htmlspecialchars($barber->getPhone()) ?>
+                                        </div>
                                     </td>
+                                    <!-- bio -->
                                     <td class="align-middle">
-                                        <?= htmlspecialchars(substr($barber->getBio() ?? '', 0, 50)) ?>
-                                        <?php if (strlen($barber->getBio() ?? '') > 50): ?>...<?php endif; ?>
+                                        <div class="editable-cell"
+                                             data-id="<?= $barber->getId() ?>"
+                                             data-field="bio"
+                                             data-type="textarea"
+                                             data-entity="barber"
+                                             data-original-value="<?= htmlspecialchars($barber->getBio() ?? '') ?>"
+                                             title="Kliknite pre úpravu">
+                                            <?= htmlspecialchars($barber->getBio() ?? '') ?>
+                                        </div>
                                     </td>
+                                    <!-- fotka url -->
                                     <td class="align-middle">
-                                        <span class="badge bg-<?= $barber->getIsActive() ? 'success' : 'danger' ?>">
-                                            <?= $barber->getIsActive() ? 'Aktívny' : 'Neaktívny' ?>
-                                        </span>
+                                        <div class="editable-cell"
+                                             data-id="<?= $barber->getId() ?>"
+                                             data-field="photo_url"
+                                             data-type="text"
+                                             data-entity="barber"
+                                             title="Kliknite pre úpravu">
+                                            <?php if ($barber->getPhotoUrl()): ?>
+                                                <a href="<?= htmlspecialchars($barber->getPhotoUrl()) ?>"
+                                                   target="_blank"
+                                                   class="text-warning text-decoration-none"
+                                                   onclick="event.stopPropagation()">
+                                                    Fotka
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="text-muted">Nezadané</span>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
+                                    <!-- status -->
+                                    <td class="align-middle">
+                                        <div class="editable-cell"
+                                             data-id="<?= $barber->getId() ?>"
+                                             data-field="is_active"
+                                             data-type="select"
+                                             data-entity="barber"
+                                             data-options='<?= json_encode([
+                                                 ['value' => '1', 'text' => 'Aktívny'],
+                                                 ['value' => '0', 'text' => 'Neaktívny']
+                                             ]) ?>'
+                                             data-render="badge"
+                                             title="Kliknite pre úpravu">
+                                            <?php
+                                            $status = $barber->getIsActive() ? 'Aktívny' : 'Neaktívny';
+                                            $badgeClass = $barber->getIsActive() ? 'success' : 'danger';
+                                            ?>
+                                            <span class="badge bg-<?= $badgeClass ?> text-dark">
+                                                <?= $status ?>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <!-- datum pridania(readonly) -->
+                                    <td class="align-middle">
+                                        <?= date('d.m.Y H:i', strtotime($barber->getCreatedAt())) ?>
+                                    </td>
+                                    <!-- AKCIE -->
                                     <td class="align-middle">
                                         <a href="<?= $link->url('admin.deleteBarber', ['id' => $barber->getId()]) ?>"
                                            class="btn btn-outline-danger btn-sm"
