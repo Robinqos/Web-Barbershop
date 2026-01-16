@@ -115,6 +115,8 @@ class AdminController extends BaseController
 
             case 'service':
                 return $this->updateService($id, $field, $value);
+            case 'barber':
+                return $this->updateBarber($id, $field, $value);
 
             default:
                 return $this->json(['success' => false, 'message' => 'Neplatná entita: ' . $entity]);
@@ -147,12 +149,14 @@ class AdminController extends BaseController
             'reservation_date ASC'
         );
 
-        $services = \App\Models\Service::getAll(null, [], 'title ASC');
+        $services = Service::getAll(null, [], 'title ASC');
+        $barbers = User::getAll('permissions = ?', [User::ROLE_BARBER], 'fullname ASC');
 
         return $this->html([
             'reservations' => $reservations,
             'filter' => $filter,
-            'services' => $services
+            'services' => $services,
+            'barbers' => $barbers
         ], 'reservations');
     }
     /**
@@ -178,7 +182,38 @@ class AdminController extends BaseController
                     $reservation->setGuestEmail(trim($value));
                 }
                 break;
+            case 'barber_id':
+                $barberId = (int)$value;
 
+                if ($barberId === 0) {
+                    $reservation->setBarberId(null);
+                    $reservation->save();
+                    return $this->json([
+                        'success' => true,
+                        'message' => 'Rezervácia aktualizovaná',
+                        'value' => '<span class="text-muted">Nepriradený</span>',
+                        'dataValue' => '0'
+                    ]);
+                } else {
+                    $barberModel = Barber::getOne($barberId);
+
+                    if (!$barberModel) {
+                        $errors[] = 'Barber neexistuje v systéme';
+                    } elseif (!$barberModel->getIsActive()) {
+                        $errors[] = 'Tento barber je neaktívny a nemôže prijímať rezervácie';
+                    } else {
+                        $reservation->setBarberId($barberId);
+                        $reservation->save();
+
+                        return $this->json([
+                            'success' => true,
+                            'message' => 'Rezervácia aktualizovaná',
+                            'value' => $barberModel->getName(),
+                            'barberId' => $barberId
+                        ]);
+                    }
+                }
+                break;
             case 'guest_phone':
                 $validationError = $this->validatePhone($value, true);
                 if ($validationError) {
@@ -256,7 +291,7 @@ class AdminController extends BaseController
                 break;
 
             case 'note':
-                // Poznámka nie je povinná, ale môže mať maximálnu dĺžku
+                // nie je poviina ale max dlzka
                 $trimmedValue = trim($value);
                 if (strlen($trimmedValue) > 70) {
                     $errors[] = 'Poznámka môže mať maximálne 70 znakov';
@@ -726,6 +761,127 @@ class AdminController extends BaseController
         return $this->redirect($this->url('admin.barbers'));
     }
 
+    /**
+     * AJAX update pre barbera
+     */
+    private function updateBarber($id, $field, $value)
+    {
+        $barber = Barber::getOne($id);
+        if (!$barber) {
+            return $this->json(['success' => false, 'message' => 'Barber neexistuje']);
+        }
+
+        $errors = [];
+        $displayValue = $value;
+        $badgeClass = null;
+
+        if ($field === 'user_id') {
+            return $this->json(['success' => false, 'message' => 'Pole user_id nie je editovateľné']);
+        }
+
+        switch ($field) {
+            case 'bio':
+                $trimmedValue = trim($value);
+                if (empty($trimmedValue)) {
+                    $errors[] = 'Bio je povinné';
+                } elseif (strlen($trimmedValue) > 500) {
+                    $errors[] = 'Bio môže mať maximálne 500 znakov';
+                } else {
+                    $barber->setBio($trimmedValue);
+                    $displayValue = $trimmedValue;
+                }
+                break;
+
+            case 'photo_url':
+                $trimmedValue = trim($value);
+                if (empty($trimmedValue)) {
+                    $errors[] = 'URL fotky je povinná';
+                } elseif (!filter_var($trimmedValue, FILTER_VALIDATE_URL)) {
+                    $errors[] = 'Neplatná URL adresa';
+                } elseif (strlen($trimmedValue) > 255) {
+                    $errors[] = 'URL môže mať maximálne 255 znakov';
+                } else {
+                    $barber->setPhotoUrl($trimmedValue);
+                    $displayValue = $trimmedValue;
+                }
+                break;
+
+            case 'is_active':
+                $intValue = (int)$value;
+                if (!in_array($intValue, [0, 1])) {
+                    $errors[] = 'Neplatná hodnota. Povolené: 0 (neaktívny), 1 (aktívny)';
+                } else {
+                    $barber->setIsActive((bool)$intValue);
+                    $displayValue = $intValue ? 'Aktívny' : 'Neaktívny';
+                    $badgeClass = $intValue ? 'success' : 'danger';
+                }
+                break;
+
+            default:
+                // ak je pole pouzivatela
+                $userId = $barber->getUserId();
+                $user = User::getOne($userId);
+                if (!$user) {
+                    return $this->json(['success' => false, 'message' => 'Používateľ neexistuje']);
+                }
+
+                switch ($field) {
+                    case 'name':
+                        $validationError = $this->validateFullName($value, true);
+                        if ($validationError) {
+                            $errors[] = $validationError;
+                        } else {
+                            $user->setFullName(trim($value));
+                            $displayValue = trim($value);
+                        }
+                        break;
+
+                    case 'email':
+                        $validationError = $this->validateEmailForAdmin($value, $userId, true);
+                        if ($validationError) {
+                            $errors[] = $validationError;
+                        } else {
+                            $user->setEmail(trim($value));
+                            $displayValue = trim($value);
+                        }
+                        break;
+
+                    case 'phone':
+                        $validationError = $this->validatePhone($value, true);
+                        if ($validationError) {
+                            $errors[] = $validationError;
+                        } else {
+                            $user->setPhone(trim($value));
+                            $displayValue = trim($value);
+                        }
+                        break;
+
+                    default:
+                        return $this->json(['success' => false, 'message' => 'Nepodporované pole: ' . $field]);
+                }
+
+                if (empty($errors)) {
+                    $user->save();
+                }
+                break;
+        }
+
+        if (!empty($errors)) {
+            return $this->json(['success' => false, 'errors' => $errors]);
+        }
+
+        if (!in_array($field, ['name', 'email', 'phone'])) {
+            $barber->save();
+        }
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Barber aktualizovaný',
+            'value' => $displayValue,
+            'badgeClass' => $badgeClass
+        ]);
+    }
+
     ///////////////////////////////////////////////////////////VALIDACIE
 
     private function validateFullName(?string $full_name, bool $required = false): ?string
@@ -823,7 +979,4 @@ class AdminController extends BaseController
 
         return $badges[$permissions] ?? 'secondary';
     }
-
-
-//todo: barberi view
 }
