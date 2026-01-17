@@ -1154,7 +1154,7 @@ function initAdminBarberCreate() {
         phone: document.getElementById('phone'),
         password: document.getElementById('password'),
         bio: document.getElementById('bio'),
-        photo_url: document.getElementById('photo_url')
+        photo_path: document.getElementById('photo_path')
     };
 
     const submitBtn = form.querySelector('[type="submit"]');
@@ -1202,11 +1202,11 @@ function initAdminBarberCreate() {
             customMsg: 'Zadajte bio barbera'
         }),
 
-        photo_url: () => Validator.validate(fields.photo_url, {
+        photo_path: () => Validator.validate(fields.photo_path, {
             required: true,
-            requiredMsg: 'URL fotky je povinná',
+            requiredMsg: 'Cesta fotky je povinná',
             custom: (v) => v.startsWith('http://') || v.startsWith('https://'),
-            customMsg: 'URL musí začínať s http:// alebo https://'
+            customMsg: 'Cesta musí začínať s http:// alebo https://'
         })
     };
 
@@ -1215,7 +1215,7 @@ function initAdminBarberCreate() {
     setupField(fields.email, validators.email, updateBtn);
     setupField(fields.phone, validators.phone, updateBtn);
     setupField(fields.bio, validators.bio, updateBtn);
-    setupField(fields.photo_url, validators.photo_url, updateBtn);
+    setupField(fields.photo_path, validators.photo_path, updateBtn);
     setupField(fields.password, validators.password, updateBtn);
 
     // Submit handler - PÔVODNÝ

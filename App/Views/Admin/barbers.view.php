@@ -84,24 +84,24 @@
                                             <?= htmlspecialchars($barber->getBio() ?? '') ?>
                                         </div>
                                     </td>
-                                    <!-- fotka url -->
+                                    <!-- fotka path -->
                                     <td class="align-middle">
                                         <div class="editable-cell"
                                              data-id="<?= $barber->getId() ?>"
-                                             data-field="photo_url"
-                                             data-type="text"
-                                             data-entity="barber"
-                                             title="Kliknite pre úpravu">
-                                            <?php if ($barber->getPhotoUrl()): ?>
-                                                <a href="<?= htmlspecialchars($barber->getPhotoUrl()) ?>"
-                                                   target="_blank"
-                                                   class="text-warning text-decoration-none"
-                                                   onclick="event.stopPropagation()">
-                                                    Fotka
-                                                </a>
-                                            <?php else: ?>
-                                                <span class="text-muted">Nezadané</span>
-                                            <?php endif; ?>
+                                             data-field="photo_path"
+                                        data-type="text"
+                                        data-entity="barber"
+                                        title="Kliknite pre úpravu">
+                                        <?php if ($barber->getPhotoPath()): ?>
+                                            <a href="<?= htmlspecialchars($barber->getPhotoPath()) ?>"
+                                               target="_blank"
+                                               class="text-warning text-decoration-none"
+                                               onclick="event.stopPropagation()">
+                                                Fotka
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="text-muted">Nezadané</span>
+                                        <?php endif; ?>
                                         </div>
                                     </td>
                                     <!-- status -->

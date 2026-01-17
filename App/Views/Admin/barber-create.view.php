@@ -67,9 +67,9 @@
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="photo_url" class="form-label">URL fotky *</label>
-                            <input type="text" class="form-control" id="photo_url" name="photo_url" required>
-                            <div id="photo_url_help" class="form-text text-danger"></div>
+                            <label for="photo_path" class="form-label">Fotka *</label>
+                            <input type="text" class="form-control" id="photo_path" name="photo_path" required>
+                            <div id="photo_path_help" class="form-text text-danger"></div>
                         </div>
                         <div class="col-md-6">
                             <label for="is_active" class="form-label">Status</label>

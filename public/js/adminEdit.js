@@ -48,6 +48,17 @@ class InlineEditor {
                 validate: (value) => {
                     return value.length >= 1 ? null : 'Pole je povinné';
                 }
+            },
+            path: {
+                validate: (value) => {
+                    if (!value.trim()) return 'Cesta je povinná';
+                    try {
+                        new URL(value);
+                        return null;
+                    } catch {
+                        return 'Neplatná cesta k suboru (príklad: https://priklad.com/foto.jpg)';
+                    }
+                }
             }
         };
 
@@ -108,6 +119,7 @@ class InlineEditor {
     }
 
     createInput(type, cell, field) {
+        const dataValue = cell.dataset.originalValue || cell.textContent.trim();
         let input;
 
         switch(type) {
@@ -116,19 +128,33 @@ class InlineEditor {
                 input.className = 'form-select form-select-sm editable-input';
 
                 const options = cell.dataset.options ? JSON.parse(cell.dataset.options) : [];
+
+                // ziskaj aktualnu hodnotu
+                let currentValue = cell.dataset.currentValue;
+                if (!currentValue) {
+                    // ziskaj text z bunky alebo badge
+                    const badgeSpan = cell.querySelector('.badge');
+                    if (badgeSpan) {
+                        const badgeText = badgeSpan.textContent.trim();
+                        if (badgeText === 'Aktívny') currentValue = '1';
+                        else if (badgeText === 'Neaktívny') currentValue = '0';
+                        else if (badgeText === 'Čakajúca') currentValue = 'pending';
+                        else if (badgeText === 'Dokončená') currentValue = 'completed';
+                        else if (badgeText === 'Zrušená') currentValue = 'cancelled';
+                    } else {
+                        // skus ziskat text
+                        const cellText = cell.textContent.trim();
+                        if (cellText === 'Aktívny') currentValue = '1';
+                        else if (cellText === 'Neaktívny') currentValue = '0';
+                    }
+                }
+
                 options.forEach(option => {
                     const opt = document.createElement('option');
                     opt.value = option.value;
                     opt.textContent = option.text;
 
-                    //treba porovnat iba string pre badge
-                    const cellText = cell.textContent.trim();
-                    const badgeMatch = cellText.match(/^([A-Za-záäčďéíľňóôŕšťúýžÁÄČĎÉÍĽŇÓÔŔŠŤÚÝŽ]+)/);
-                    if (badgeMatch) {
-                        if (badgeMatch[1] === option.text) {
-                            opt.selected = true;
-                        }
-                    } else if (cellText === option.text) {
+                    if (currentValue && opt.value === currentValue.toString()) {
                         opt.selected = true;
                     }
 
@@ -139,8 +165,8 @@ class InlineEditor {
             case 'textarea':
                 input = document.createElement('textarea');
                 input.className = 'form-control form-control-sm editable-input';
-                input.rows = 2;
-                input.value = cell.textContent.trim();
+                input.rows = 3;
+                input.value = dataValue;
                 break;
 
             case 'datetime':
@@ -201,6 +227,8 @@ class InlineEditor {
             validatorType = 'price';
         } else if (field === 'duration') {
             validatorType = 'duration';
+        } else if (field === 'photo_path') {
+            validatorType = 'path';
         }
 
         const validator = this.validators[validatorType];
@@ -256,7 +284,7 @@ class InlineEditor {
             });
 
             if (!response.ok) {
-                new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const result = await response.json();
@@ -330,7 +358,13 @@ class InlineEditor {
             case 'duration':
                 const duration = parseInt(trimmedValue);
                 return !isNaN(duration) && duration > 0;
-
+            case 'photo_path':
+                try {
+                    new URL(trimmedValue);
+                    return true;
+                } catch {
+                    return false;
+                }
             default:
                 return true;
         }
@@ -339,20 +373,24 @@ class InlineEditor {
     renderCell(cell, value, result) {
         const renderType = cell.dataset.render;
 
-        if (renderType === 'badge' || renderType === 'status') {
+        if (renderType === 'badge') {
             const badgeClass = result.badgeClass || 'secondary';
+            // barber mappovanie
+            if (value === '1' || value === 1) value = 'Aktívny';
+            else if (value === '0' || value === 0) value = 'Neaktívny';
 
-            if (renderType === 'status') {
-                const statusMap = {
-                    'pending': 'Čakajúca',
-                    'completed': 'Dokončená',
-                    'cancelled': 'Zrušená',
-                    'active': 'Aktívny',
-                    'inactive': 'Neaktívny'
-                };
-                value = statusMap[value] || value;
-            }
+            cell.innerHTML = `<span class="badge bg-${badgeClass} text-dark">${value}</span>`;
+            return;
+        }
 
+        if (renderType === 'status') {
+            const badgeClass = result.badgeClass || 'secondary';
+            const statusMap = {
+                'pending': 'Čakajúca',
+                'completed': 'Dokončená',
+                'cancelled': 'Zrušená'
+            };
+            value = statusMap[value] || value;
             cell.innerHTML = `<span class="badge bg-${badgeClass} text-dark">${value}</span>`;
             return;
         }
@@ -380,11 +418,10 @@ class InlineEditor {
     showMessage(text, type) {
         const msg = document.createElement('div');
         msg.textContent = text;
-        msg.className = 'position-fixed bottom-0 end-0 m-3 p-3 rounded';
+        msg.className = 'position-fixed top-4 end-0 m-5 p-3 rounded';
         msg.style.cssText = `
             background: ${type === 'success' ? '#198754' : '#dc3545'};
             color: white;
-            z-index: 9999;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             font-weight: 500;
         `;
