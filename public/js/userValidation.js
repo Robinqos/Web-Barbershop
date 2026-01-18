@@ -1154,14 +1154,71 @@ function initAdminBarberCreate() {
         phone: document.getElementById('phone'),
         password: document.getElementById('password'),
         bio: document.getElementById('bio'),
-        photo_path: document.getElementById('photo_path')
+        photo: document.getElementById('photo')
     };
 
     const submitBtn = form.querySelector('[type="submit"]');
 
-    // Password requirements
     if (fields.password) {
         createPasswordRequirements(fields.password, 'Heslo pre barbera:');
+    }
+    if (fields.bio) {
+        const bioCounter = document.createElement('div');
+        bioCounter.className = 'form-text text-muted';
+        bioCounter.id = 'bioCounter';
+        bioCounter.textContent = '0/500 znakov';
+        fields.bio.parentNode.appendChild(bioCounter);
+
+        fields.bio.addEventListener('input', function() {
+            bioCounter.textContent = this.value.length + '/500 znakov';
+        });
+    }
+    if (fields.photo) {
+        const previewDiv = document.createElement('div');
+        previewDiv.id = 'photoPreview';
+        previewDiv.className = 'mt-3 text-center';
+        previewDiv.style.display = 'none';
+        previewDiv.innerHTML = '<img id="previewImage" src="" alt="Náhľad" class="img-thumbnail" style="max-width: 200px;">';
+        fields.photo.parentNode.appendChild(previewDiv);
+
+        fields.photo.addEventListener('change', function() {
+            const file = this.files[0];
+            const previewImg = document.getElementById('previewImage');
+
+            if (file && previewImg) {
+                //validacia klient
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                const maxSize = 2 * 1024 * 1024; // 2MB
+
+                if (!allowedTypes.includes(file.type)) {
+                    Validator.showError(this, 'Nepodporovaný formát. Povolené: JPG, PNG, GIF, WebP.');
+                    this.value = '';
+                    previewDiv.style.display = 'none';
+                    updateBtn();
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    Validator.showError(this, 'Súbor je príliš veľký. Maximálna veľkosť: 2MB.');
+                    this.value = '';
+                    previewDiv.style.display = 'none';
+                    updateBtn();
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewDiv.style.display = 'block';
+                    Validator.clearError(fields.photo);
+                    updateBtn();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewDiv.style.display = 'none';
+                updateBtn();
+            }
+        });
     }
 
     const validators = {
@@ -1198,16 +1255,38 @@ function initAdminBarberCreate() {
         bio: () => Validator.validate(fields.bio, {
             required: true,
             requiredMsg: 'Bio je povinné',
-            custom: (v) => v.trim().length > 0,
-            customMsg: 'Zadajte bio barbera'
+            custom: (v) => {
+                const trimmed = v.trim();
+                return trimmed.length >= 10 && trimmed.length <= 500;
+            },
+            customMsg: 'Bio musí mať 10-500 znakov'
         }),
 
-        photo_path: () => Validator.validate(fields.photo_path, {
-            required: true,
-            requiredMsg: 'Cesta fotky je povinná',
-            custom: (v) => v.startsWith('http://') || v.startsWith('https://'),
-            customMsg: 'Cesta musí začínať s http:// alebo https://'
-        })
+        photo: () => {
+            if (!fields.photo) return true;
+
+            if (!fields.photo.files || fields.photo.files.length === 0) {
+                Validator.showError(fields.photo, 'Fotka je povinná');
+                return false;
+            }
+
+            const file = fields.photo.files[0];
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            const maxSize = 2 * 1024 * 1024;
+
+            if (!allowedTypes.includes(file.type)) {
+                Validator.showError(fields.photo, 'Nepodporovaný formát. Povolené: JPG, PNG, GIF, WebP.');
+                return false;
+            }
+
+            if (file.size > maxSize) {
+                Validator.showError(fields.photo, 'Súbor je príliš veľký. Maximálna veľkosť: 2MB.');
+                return false;
+            }
+
+            Validator.clearError(fields.photo);
+            return true;
+        }
     };
 
     // Setup polí - všetky používajú setupField()
@@ -1215,8 +1294,24 @@ function initAdminBarberCreate() {
     setupField(fields.email, validators.email, updateBtn);
     setupField(fields.phone, validators.phone, updateBtn);
     setupField(fields.bio, validators.bio, updateBtn);
-    setupField(fields.photo_path, validators.photo_path, updateBtn);
     setupField(fields.password, validators.password, updateBtn);
+
+    // file input handler
+    if (fields.photo) {
+        fields.photo.dataset.interacted = 'false';
+
+        fields.photo.addEventListener('change', function() {
+            this.dataset.interacted = 'true';
+            validators.photo();
+            updateBtn();
+        });
+
+        fields.photo.addEventListener('blur', function() {
+            this.dataset.interacted = 'true';
+            validators.photo();
+            updateBtn();
+        });
+    }
 
     // Submit handler - PÔVODNÝ
     form.addEventListener('submit', function(e) {

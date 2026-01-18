@@ -13,13 +13,16 @@
     <!-- head -->
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="cb-gold-text">Barber panel</h1>
             <p class="cb-text-muted">Vitajte, <strong><?= htmlspecialchars($barber->getName()) ?></strong></p>
 
             <?php if ($barber->getIsActive()): ?>
                 <div class="alert alert-dark">
                     <i class="bi bi-scissors"></i> Ste prihlásený ako <strong>Barber</strong>
-                    <div class="mt-2">
+                    <div class="mt-2 d-flex align-items-center flex-wrap">
+                        <!-- upraviť profil -->
+                        <a href="<?= $link->url('barber.editProfile') ?>" class="btn btn-warning btn-sm me-2">
+                            <i class="bi bi-pencil"></i> Upraviť profil
+                        </a>
                         <!-- deaktivacia -->
                         <form method="POST" action="<?= $link->url('barber.toggleActivation') ?>"
                               class="d-inline-block"
@@ -28,7 +31,7 @@
                                 <i class="bi bi-power"></i> Deaktivovať účet
                             </button>
                         </form>
-                        <small class="ms-2 cb-text-muted">(napr. ak idete na dovolenku)</small>
+                        <small class="ms-2 text-dark">(napr. ak idete na dovolenku)</small>
                     </div>
                 </div>
             <?php else: ?>

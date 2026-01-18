@@ -13,7 +13,6 @@
     <!-- head -->
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="cb-gold-text">Admin sekcia</h1>
             <p class="cb-text-muted">Vitajte, <strong><?= htmlspecialchars($user->getEmail()) ?></strong></p>
 
             <?php if ($user->getPermissions() >= \App\Models\User::ROLE_ADMIN): ?>

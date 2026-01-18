@@ -28,7 +28,7 @@
                                 <th class="text-center">Email</th>
                                 <th class="text-center">Telefón</th>
                                 <th class="text-center">Bio</th>
-                                <th class="text-center">URL fotky</th>
+                                <th class="text-center">Fotka</th>
                                 <th class="text-center">Status</th>
                                 <th class="text-center">Dátum pridania</th>
                                 <th class="text-center">Akcie</th>
@@ -84,25 +84,31 @@
                                             <?= htmlspecialchars($barber->getBio() ?? '') ?>
                                         </div>
                                     </td>
-                                    <!-- fotka path -->
+                                    <!-- fotka -->
                                     <td class="align-middle">
-                                        <div class="editable-cell"
-                                             data-id="<?= $barber->getId() ?>"
-                                             data-field="photo_path"
-                                        data-type="text"
-                                        data-entity="barber"
-                                        title="Kliknite pre úpravu">
                                         <?php if ($barber->getPhotoPath()): ?>
-                                            <a href="<?= htmlspecialchars($barber->getPhotoPath()) ?>"
-                                               target="_blank"
-                                               class="text-warning text-decoration-none"
-                                               onclick="event.stopPropagation()">
-                                                Fotka
-                                            </a>
+                                            <div class="d-flex flex-column align-items-center">
+                                                <img src="<?= htmlspecialchars($barber->getPhotoPath()) ?>"
+                                                     alt="<?= htmlspecialchars($barber->getName()) ?>"
+                                                     class="img-thumbnail mb-2"
+                                                     style="width: 80px; height: 80px; object-fit: cover;">
+                                                <button class="btn btn-outline-primary btn-sm upload-photo-btn"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#uploadPhotoModal"
+                                                        data-barber-id="<?= $barber->getId() ?>"
+                                                        data-barber-name="<?= htmlspecialchars($barber->getName()) ?>">
+                                                    <i class="bi bi-upload"></i> Zmeniť
+                                                </button>
+                                            </div>
                                         <?php else: ?>
-                                            <span class="text-muted">Nezadané</span>
+                                            <button class="btn btn-outline-warning btn-sm upload-photo-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#uploadPhotoModal"
+                                                    data-barber-id="<?= $barber->getId() ?>"
+                                                    data-barber-name="<?= htmlspecialchars($barber->getName()) ?>">
+                                                <i class="bi bi-plus-circle"></i> Pridať fotku
+                                            </button>
                                         <?php endif; ?>
-                                        </div>
                                     </td>
                                     <!-- status -->
                                     <td class="align-middle">
@@ -144,6 +150,36 @@
                         </table>
                     </div>
                 <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- vyskakovacie okno na upload fotky -->
+<div class="modal fade" id="uploadPhotoModal" tabindex="-1" aria-labelledby="uploadPhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content cb-dark-card">
+            <div class="modal-header">
+                <h5 class="modal-title cb-gold-text" id="uploadPhotoModalLabel">Nahrať fotku</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="<?= $link->url('admin.uploadBarberPhoto') ?>" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" id="barber_id" name="barber_id" value="">
+                    <div class="mb-3">
+                        <label for="photo" class="form-label">Vyberte fotku</label>
+                        <input type="file" class="form-control" id="photo" name="photo" accept="image/*" required>
+                        <div class="form-text cb-text-muted">
+                            Podporované formáty: JPG, PNG, GIF, WebP.<br>
+                            Maximálna veľkosť: 2MB.<br>
+                            Minimálne rozlíšenie: 200x200px.
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-upload"></i> Nahrať fotku
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
