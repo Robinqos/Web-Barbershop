@@ -2,6 +2,10 @@
 
 namespace App\Controllers;
 
+use App\Models\Barber;
+use App\Models\Review;
+use App\Models\Service;
+use App\Models\User;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
@@ -39,7 +43,68 @@ class HomeController extends BaseController
      */
     public function index(Request $request): Response
     {
-        return $this->html();
+        // sluzby
+        $services = Service::getAll();
+
+        // aktivnych barberov
+        $barbers = Barber::getAll('is_active = 1', [], 'created_at DESC');
+
+        // barberi s doplnkovymi udajmi
+        $barbersWithDetails = [];
+
+        // vsetky recenzie
+        $allReviews = Review::getAll();
+        $barberRatings = [];
+        $barberCounts = [];
+
+        foreach ($allReviews as $review) {
+            $barberId = $review->getBarberId();
+            if (!isset($barberRatings[$barberId])) {
+                $barberRatings[$barberId] = [];
+                $barberCounts[$barberId] = 0;
+            }
+            $barberRatings[$barberId][] = $review->getRating();
+            $barberCounts[$barberId]++;
+        }
+
+        // kazdeho barbera check
+        foreach ($barbers as $barber) {
+            $user = User::getOne($barber->getUserId());
+            if (!$user) {
+                continue;
+            }
+
+            // priemer
+            $ratings = $barberRatings[$barber->getId()] ?? [];
+            $averageRating = empty($ratings) ? 0 : array_sum($ratings) / count($ratings);
+            $reviewCount = $barberCounts[$barber->getId()] ?? 0;
+
+            // hviezdickz
+            $fullStars = floor($averageRating);
+            $halfStar = $averageRating - $fullStars >= 0.5;
+            $emptyStars = 5 - $fullStars - ($halfStar ? 1 : 0);
+
+            $starRating =
+                str_repeat('★', $fullStars) .
+                ($halfStar ? '⯪' : '') .
+                str_repeat('☆', $emptyStars);
+
+            // bar s udajmi do pola
+            $barbersWithDetails[] = [
+                'barber' => $barber,
+                'user' => $user,
+                'averageRating' => $averageRating,
+                'reviewCount' => $reviewCount,
+                'starRating' => $starRating,
+                'formattedRating' => number_format($averageRating, 1)
+            ];
+        }
+
+        //poslat do pohladu
+        return $this->html([
+            'services' => $services,
+            'barbers' => $barbersWithDetails
+        ]);
     }
 
     /**

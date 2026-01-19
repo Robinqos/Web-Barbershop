@@ -1338,10 +1338,58 @@ function initAdminBarberCreate() {
     updateBtn();
 }
 
+// pridavanie recenzie userom
+function initReviewForms() {
+    const forms = document.querySelectorAll('form[action*="review.store"]');
+
+    if (forms.length === 0) {
+        return;
+    }
+
+    forms.forEach(form => {
+        let isSubmitting = false;
+
+        form.addEventListener('submit', function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return;
+            }
+
+            // valid vyber hdnotenia
+            const select = this.querySelector('select[name="rating"]');
+            if (!select || select.value === '') {
+                e.preventDefault();
+                alert('Prosím vyberte hodnotenie.');
+                select.focus();
+                return;
+            }
+
+            // Disable submit button
+            const submitButton = this.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '...';
+                submitButton.classList.remove('btn-outline-success');
+                submitButton.classList.add('btn-secondary');
+            }
+
+            isSubmitting = true;
+        });
+    });
+
+    // chybove spravy
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    if (error) {
+        alert(decodeURIComponent(error));
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
+
 // Hlavná inicializačná funkcia
 document.addEventListener('DOMContentLoaded', function() {
-    // Zisti, ktorý formulár je na stránke a inicializuj príslušnú funkciu
-    if (document.getElementById('registerForm')) initRegister();        //ked das do view id="register form, spusti sa initregister
+
+    if (document.getElementById('registerForm')) initRegister();
     if (document.getElementById('editForm')) initEdit();
     if (document.getElementById('reservationForm')) initReservation();
 
@@ -1349,4 +1397,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('createUserForm')) initAdminUserCreate();
     if (document.getElementById('createServiceForm')) initAdminServiceCreate();
     if (document.getElementById('createBarberForm')) initAdminBarberCreate();
+
+    // init formulare na hodnotenie
+    initReviewForms();
 });

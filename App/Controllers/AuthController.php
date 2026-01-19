@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Models\Reservation;
+use App\Models\Review;
 use App\Models\User;
 use Exception;
 use Framework\Core\BaseController;
@@ -43,12 +45,28 @@ class AuthController extends BaseController
             return $this->redirect($this->url("barber.index"));
         }
 
-        $reservations = \App\Models\Reservation::getAll(
+        // prihlaseny user = nacitaj rezervacie
+        $reservations = Reservation::getAll(
             'user_id = ? AND status IN ("pending", "completed")',
             [$user->getId()],
             'reservation_date DESC'
         );
-        return $this->html(compact('reservations'));
+
+        // recenzie
+        $userReviews = Review::getAll(
+            'user_id = ?',
+            [$user->getId()]
+        );
+
+        // mapovanie
+        $reviewMap = [];
+        foreach ($userReviews as $review) {
+            if ($review->getReservationId()) {
+                $reviewMap[$review->getReservationId()] = $review;
+            }
+        }
+
+        return $this->html(compact('reservations', 'reviewMap'));
     }
 
     /**
