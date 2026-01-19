@@ -9,7 +9,7 @@ class Barber extends Model
     protected int $id;
     protected int $user_id;
     protected ?string $bio;
-    protected ?string $photo_url;
+    protected ?string $photo_path;
     protected int $is_active;
     protected string $created_at;
 
@@ -38,14 +38,14 @@ class Barber extends Model
         $this->bio = $bio;
     }
 
-    public function getPhotoUrl(): ?string
+    public function getPhotoPath(): ?string
     {
-        return $this->photo_url;
+        return $this->photo_path;
     }
 
-    public function setPhotoUrl(?string $photo_url): void
+    public function setPhotoPath(?string $photo_path): void
     {
-        $this->photo_url = $photo_url;
+        $this->photo_path = $photo_path;
     }
 
     public function getIsActive(): int

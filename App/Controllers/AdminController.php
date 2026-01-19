@@ -701,7 +701,7 @@ class AdminController extends BaseController
         if ($request->isPost()) {
             $errors = [];
 
-            // Validacie
+            // Validácie textových polí (tvoje pôvodné)
             if ($error = $this->validateFullName($request->value('name'), true)) {
                 $errors['name'] = $error;
             }
@@ -718,11 +718,75 @@ class AdminController extends BaseController
                 $errors['password'] = $error;
             }
 
+            $bio = trim($request->value('bio'));
+            if (empty($bio)) {
+                $errors['bio'] = 'Bio je povinné';
+            } elseif (strlen($bio) < 10) {
+                $errors['bio'] = 'Bio musí mať aspoň 10 znakov';
+            } elseif (strlen($bio) > 500) {
+                $errors['bio'] = 'Bio môže mať maximálne 500 znakov';
+            }
+
+            $photoFile = $request->file('photo');
+            $photoPath = null;
+
+            if (!$photoFile || !$photoFile->isOk()) {
+                $errors['photo'] = 'Fotka je povinná';
+            } else {
+                // kontrola typu fokty
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                $mimeType = $photoFile->getType();
+
+                if (!in_array($mimeType, $allowedTypes)) {
+                    $errors['photo'] = 'Nepodporovaný formát obrázka. Povolené: JPEG, PNG, GIF, WebP.';
+                }
+
+                // max 2mb
+                if ($photoFile->getSize() > 2 * 1024 * 1024) {
+                    $errors['photo'] = 'Obrázok je príliš veľký. Maximálna veľkosť: 2MB.';
+                }
+
+                if (empty($errors['photo'])) {
+                    $tmpPath = $photoFile->getFileTempPath();
+                    if (file_exists($tmpPath)) {
+                        list($width, $height) = getimagesize($tmpPath);
+
+
+
+                        if ($width < 200 || $height < 200) {
+                            $errors['photo'] = 'Obrázok má príliš nízke rozlíšenie. Minimálne: 200x200px.';
+                        }
+                    }
+                }
+
+                // vytvori unique nazov
+                if (empty($errors['photo'])) {
+                    $originalName = $photoFile->getName();
+                    $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                    $safeName = 'barber_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . strtolower($extension);
+
+                    // adresar
+                    $uploadDir = __DIR__ . '/../../public/uploads/barbers/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0775, true);
+                    }
+
+                    $uploadPath = $uploadDir . $safeName;
+
+                    // ulozenie
+                    if ($photoFile->store($uploadPath)) {
+                        $photoPath = '/uploads/barbers/' . $safeName;
+                    } else {
+                        $errors['photo'] = 'Nepodarilo sa uložiť súbor. Skontrolujte práva adresára.';
+                    }
+                }
+            }
+
             if (!empty($errors)) {
                 return $this->html(['errors' => $errors], 'barber-create');
             }
 
-            //najprv ako uzivatela
+            // Vytvorenie používateľa (tvoja pôvodná logika)
             $user = new User();
             $user->setFullName($request->value('name'));
             $user->setEmail($request->value('email'));
@@ -732,11 +796,11 @@ class AdminController extends BaseController
             $user->setCreatedAt(date('Y-m-d H:i:s'));
             $user->save();
 
-            //potom barber
+            // Vytvorenie barbera
             $barber = new Barber();
             $barber->setUserId($user->getId());
-            $barber->setBio($request->value('bio'));
-            $barber->setPhotoUrl($request->value('photo_url'));
+            $barber->setBio($bio);
+            $barber->setPhotoPath($photoPath); // Uložíme cestu k fotke
             $barber->setIsActive((bool)$request->value('is_active', true));
             $barber->setCreatedAt(date('Y-m-d H:i:s'));
             $barber->save();
@@ -792,16 +856,16 @@ class AdminController extends BaseController
                 }
                 break;
 
-            case 'photo_url':
+            case 'photo_path':
                 $trimmedValue = trim($value);
                 if (empty($trimmedValue)) {
-                    $errors[] = 'URL fotky je povinná';
+                    $errors[] = 'Cesta fotky je povinná';
                 } elseif (!filter_var($trimmedValue, FILTER_VALIDATE_URL)) {
                     $errors[] = 'Neplatná URL adresa';
                 } elseif (strlen($trimmedValue) > 255) {
                     $errors[] = 'URL môže mať maximálne 255 znakov';
                 } else {
-                    $barber->setPhotoUrl($trimmedValue);
+                    $barber->setPhotoPath($trimmedValue);
                     $displayValue = $trimmedValue;
                 }
                 break;
@@ -881,7 +945,76 @@ class AdminController extends BaseController
             'badgeClass' => $badgeClass
         ]);
     }
+    public function uploadBarberPhoto(Request $request): Response
+    {
+        if (!$request->isPost()) {
+            return $this->redirect($this->url('admin.barbers'));
+        }
 
+        $barberId = (int) $request->value('barber_id');
+        $barber = Barber::getOne($barberId);
+
+        if (!$barber) {
+            return $this->redirect($this->url('admin.barbers'));
+        }
+
+        $photoFile = $request->file('photo');
+
+        if (!$photoFile || !$photoFile->isOk()) {
+            return $this->redirect($this->url('admin.barbers'));
+        }
+
+        // typ fotky
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $mimeType = $photoFile->getType();
+
+        if (!in_array($mimeType, $allowedTypes)) {
+            return $this->redirect($this->url('admin.barbers'));
+        }
+
+        if ($photoFile->getSize() > 2 * 1024 * 1024) {
+            return $this->redirect($this->url('admin.barbers'));
+        }
+
+        $tmpPath = $photoFile->getFileTempPath();
+        if (file_exists($tmpPath)) {
+            $imageInfo = @getimagesize($tmpPath);
+
+            if ($imageInfo === false) {
+                return $this->redirect($this->url('admin.barbers'));
+            }
+
+            list($width, $height) = $imageInfo;
+
+            if ($width < 200 || $height < 200) {
+                return $this->redirect($this->url('admin.barbers'));
+            }
+        }
+
+        $originalName = $photoFile->getName();
+        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+        $safeName = 'barber_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . strtolower($extension);
+
+        $uploadDir = __DIR__ . '/../../public/uploads/barbers/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0775, true);
+        }
+
+        $uploadPath = $uploadDir . $safeName;
+
+        if ($photoFile->store($uploadPath)) {
+            $photoPath = '/uploads/barbers/' . $safeName;
+
+            $oldPhotoPath = $barber->getPhotoPath();
+            if ($oldPhotoPath && file_exists(__DIR__ . '/../../public' . $oldPhotoPath)) {
+                @unlink(__DIR__ . '/../../public' . $oldPhotoPath);
+            }
+
+            $barber->setPhotoPath($photoPath);
+            $barber->save();
+        }
+        return $this->redirect($this->url('admin.barbers'));
+    }
     ///////////////////////////////////////////////////////////VALIDACIE
 
     private function validateFullName(?string $full_name, bool $required = false): ?string

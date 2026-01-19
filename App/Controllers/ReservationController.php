@@ -40,14 +40,13 @@ class ReservationController extends BaseController
 
         return $this->html(compact('reservations'));
     }
-
+    // AJAX
     public function getOccupiedTimes(Request $request): Response
     {
         $barberId = (int) $request->value('barber_id');
         $date = $request->value('date');
 
         if (!$barberId || !$date) {
-            error_log("Missing parameters");
             return $this->json(['error' => 'Missing parameters', 'debug' => ['barber_id' => $barberId, 'date' => $date]]);
         }
 
@@ -57,7 +56,6 @@ class ReservationController extends BaseController
             [$barberId, $date, Reservation::STATUS_PENDING, Reservation::STATUS_COMPLETED]
         );
 
-        error_log("Found " . count($reservations) . " reservations for barber $barberId on $date");
 
         $occupiedTimes = [];
 
@@ -67,7 +65,6 @@ class ReservationController extends BaseController
 
             //pridaj cas rezervacie
             $occupiedTimes[] = $timeSlot;
-            error_log("Added occupied time: $timeSlot");
 
             // ak trva 60 tak aj dalsi slot
             $service = $reservation->getService();
@@ -75,15 +72,12 @@ class ReservationController extends BaseController
                 $nextTime = (clone $reservationDate)->modify('+30 minutes');
                 $nextTimeSlot = $nextTime->format('H:i');
                 $occupiedTimes[] = $nextTimeSlot;
-                error_log("Added next occupied time (60 min service): $nextTimeSlot");
             }
         }
 
         // odstrani duplikaty
         $occupiedTimes = array_unique($occupiedTimes);
         sort($occupiedTimes);
-
-        error_log("Returning occupied times: " . implode(', ', $occupiedTimes));
 
         return $this->json($occupiedTimes);
     }

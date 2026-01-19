@@ -16,7 +16,7 @@
     <div class="row">
         <div class="col-12">
             <div class="cb-dark-card">
-                <form action="<?= $link->url('admin.createBarber') ?>" method="POST" id="createBarberForm">
+                <form action="<?= $link->url('admin.createBarber') ?>" method="POST" id="createBarberForm" enctype="multipart/form-data">   <!-- enctype je na upload binarnych suborov cez post -->
                     <h3 class="cb-gold-text">Základné informácie</h3>
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -60,16 +60,27 @@
                     <div class="row mb-3">
                         <div class="col-12">
                             <label for="bio" class="form-label">Bio *</label>
-                            <textarea class="form-control" id="bio" name="bio" rows="3" required></textarea>
-                            <div id="bio_help" class="form-text text-danger"></div>
+                            <textarea class="form-control <?= isset($errors['bio']) ? 'is-invalid' : '' ?>"
+                                      id="bio" name="bio" rows="3" required></textarea>
+                            <?php if (isset($errors['bio'])): ?>
+                                <div class="invalid-feedback"><?= $errors['bio'] ?></div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="photo_path" class="form-label">Fotka *</label>
-                            <input type="text" class="form-control" id="photo_path" name="photo_path" required>
-                            <div id="photo_path_help" class="form-text text-danger"></div>
+                            <label for="photo" class="form-label">Fotka barbera *</label>
+                            <input type="file"
+                                   class="form-control <?= isset($errors['photo']) ? 'is-invalid' : '' ?>"
+                                   id="photo"
+                                   name="photo"
+                                   accept="image/*"
+                                   required>
+                            <?php if (isset($errors['photo'])): ?>
+                                <div class="invalid-feedback"><?= $errors['photo'] ?></div>
+                            <?php endif; ?>
+                            <small class="cb-text-muted">Podporované formáty: JPG, PNG, GIF. Maximálna veľkosť: 2MB</small>
                         </div>
                         <div class="col-md-6">
                             <label for="is_active" class="form-label">Status</label>

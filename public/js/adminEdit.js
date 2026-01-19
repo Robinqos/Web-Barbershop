@@ -433,4 +433,20 @@ class InlineEditor {
 // init
 document.addEventListener('DOMContentLoaded', function() {
     window.inlineEditor = new InlineEditor();
+
+    // kod pre modal v barbers.view.php
+    const modal = document.getElementById('uploadPhotoModal');
+    if (modal) {
+        modal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const barberId = button.getAttribute('data-barber-id');
+            const barberName = button.getAttribute('data-barber-name');
+
+            const modalTitle = modal.querySelector('.modal-title');
+            const barberIdInput = modal.querySelector('#barber_id');
+
+            modalTitle.textContent = 'Nahrať fotku pre: ' + barberName;
+            barberIdInput.value = barberId;
+        });
+    }
 });
