@@ -204,22 +204,22 @@ class BarberController extends BaseController
 
         // dnes
         $todayReservations = Reservation::getAll(
-            'barber_id = ? AND DATE(reservation_date) = ? AND status = "pending"',
-            [$barber->getId(), $today],
+            'barber_id = ? AND DATE(reservation_date) = ? AND status = ?',
+            [$barber->getId(), $today, 'pending'],
             'reservation_date ASC'
         );
 
         // nadchadzajuec
         $upcomingReservations = Reservation::getAll(
-            'barber_id = ? AND reservation_date > NOW() AND status = "pending"',
-            [$barber->getId()],
+            'barber_id = ? AND reservation_date > NOW() AND status = ?',
+            [$barber->getId(), 'pending'],
             'reservation_date ASC',
             10
         );
 
         $allReservations = Reservation::getAll(
-            'barber_id = ? AND status IN ("pending", "completed")',
-            [$barber->getId()],
+            'barber_id = ? AND status IN (?, ?)',
+            [$barber->getId(), 'pending', 'completed'],
             'reservation_date DESC'
         );
 
@@ -303,8 +303,8 @@ class BarberController extends BaseController
         // ci nema ziadne nadchadzajuce rezervacie
         if ($barber->getIsActive()) {
             $upcomingReservations = Reservation::getAll(
-                'barber_id = ? AND reservation_date > NOW() AND status = "pending"',
-                [$barber->getId()]
+                'barber_id = ? AND reservation_date > NOW() AND status = ?',
+                [$barber->getId(), 'pending']
             );
 
             if (!empty($upcomingReservations)) {

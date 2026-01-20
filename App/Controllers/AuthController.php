@@ -47,8 +47,8 @@ class AuthController extends BaseController
 
         // prihlaseny user = nacitaj rezervacie
         $reservations = Reservation::getAll(
-            'user_id = ? AND status IN ("pending", "completed")',
-            [$user->getId()],
+            'user_id = ? AND status IN (?, ?)',
+            [$user->getId(), 'pending', 'completed'],
             'reservation_date DESC'
         );
 

@@ -59,14 +59,14 @@ class AdminController extends BaseController
         $today = date('Y-m-d');
 
         $todayReservations = \App\Models\Reservation::getAll(
-            'DATE(reservation_date) = ? AND status = "pending"',
-            [$today],
+            'DATE(reservation_date) = ? AND status = ?',
+            [$today, 'pending'],
             'reservation_date ASC'
         );
 
         $upcomingReservations = \App\Models\Reservation::getAll(
-            'reservation_date > NOW() AND status = "pending"',
-            [],
+            'reservation_date > NOW() AND status = ?',
+            ['pending'],
             'reservation_date ASC',
             10
         );

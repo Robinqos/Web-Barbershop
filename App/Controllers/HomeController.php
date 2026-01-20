@@ -48,7 +48,7 @@ class HomeController extends BaseController
         $services = Service::getAll();
 
         // aktivnych barberov
-        $barbers = Barber::getAll('is_active = 1', [], 'created_at DESC');
+        $barbers = Barber::getAll('is_active = ?', [1], 'created_at DESC');
 
         // barberi s doplnkovymi udajmi
         $barbersWithDetails = [];
@@ -102,7 +102,7 @@ class HomeController extends BaseController
         }
 
         // galeria
-        $galleryItems = Gallery::getActiveItems(8); // 8 najnovsich
+        $galleryItems = Gallery::getActiveItems(); // ak chceme obmedzit na nejaky pocet, tak do parametra dat
         $loggedUser = null;
         $showUploadForm = false;
         $allBarbersForAdmin = [];
@@ -141,11 +141,24 @@ class HomeController extends BaseController
             $photoPath = $item->getPhotoPath();
             $exists = $photoPath && file_exists($_SERVER['DOCUMENT_ROOT'] . $photoPath);
 
+            // meno barbera pre tuto fotku
+            $barberName = "Neznámy barber";
+            if ($item->getBarberId()) {
+                $barber = Barber::getOne($item->getBarberId());
+                if ($barber) {
+                    $barberUser = User::getOne($barber->getUserId());
+                    if ($barberUser) {
+                        $barberName = 'Barber: ' . $barberUser->getFullName();
+                    }
+                }
+            }
+
             $galleryItemsData[] = [
                 'item' => $item,
                 'canDelete' => $canDelete,
                 'photoPath' => $photoPath,
-                'exists' => $exists
+                'exists' => $exists,
+                'barberName' => $barberName
             ];
         }
 

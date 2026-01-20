@@ -66,7 +66,7 @@ class GalleryController extends BaseController
         }
 
         // max 5mb
-        if ($photo->getSize() > 5 * 1024 * 1024) {
+        if ($photo->getSize() > 7 * 1024 * 1024) {
             return $this->redirect($this->url('home.index'));
         }
 

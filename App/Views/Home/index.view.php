@@ -13,7 +13,57 @@
     <div class="container text-center">
         <h1 class="display-5 cb-gold-text">CROWN BARBER</h1>
         <p class="lead cb-gold-subtitle">Královský prístup k vášmu štýlu</p>
-        <a href="#sluzby" class="btn cb-btn-gold btn-lg mt-3">Pozrieť služby</a>
+        <a href="<?= $link->url('reservation.create') ?>" class="btn cb-btn-gold btn-lg mt-3">
+            Rezervovať termín
+        </a>
+    </div>
+</section>
+
+<!-- O NAS -->
+<section id="onas" class="cb-dark-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 cb-gold-text">O NÁS</h2>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
+                <div class="cb-dark-card p-4">
+                    <div class="text-center">
+                        <p class="cb-text-muted fs-5 mb-4">
+                            Crown Barber je viac než len barbershop. Sme miesto, kde sa tradičné remeslo stretáva
+                            s moderným dizajnom a každý klient sa cíti príjemne.
+                        </p>
+
+                        <p class="cb-text-muted mb-4">
+                            Naši skúsení barberi sa venujú každému detailu. Pomôžeme vám nájsť a zdôrazniť váš
+                            jedinečný štýl v uvoľnenej atmosfére.
+                        </p>
+
+                        <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+                            <span class="badge bg-warning text-dark p-2">
+                                <i class="bi bi-person-check"></i> Profesionáli
+                            </span>
+                            <span class="badge bg-warning text-dark p-2">
+                                <i class="bi bi-award"></i> Kvalita
+                            </span>
+                            <span class="badge bg-warning text-dark p-2">
+                                <i class="bi bi-emoji-smile"></i> Individuálny prístup
+                            </span>
+                            <span class="badge bg-warning text-dark p-2">
+                                <i class="bi bi-calendar-check"></i> Online rezervácie
+                            </span>
+                        </div>
+
+                        <p class="cb-text-muted fst-italic">
+                            "Dobrý strih nie je len o vzhľade. Je o sebavedomí, postoji a o tom, ako sa cítiš."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -23,7 +73,6 @@
         <div class="row justify-content-center">
             <div class="col-12 text-center mb-5">
                 <h2 class="display-5 cb-gold-text">NAŠE SLUŽBY</h2>
-                <p class="lead cb-text-muted">Ponúkame špičkové služby pre moderných mužov</p>
             </div>
         </div>
 
@@ -128,80 +177,124 @@
             </div>
         </div>
 
-        <!-- fotky -->
-        <div class="row justify-content-center">
-            <?php foreach ($galleryItems as $galleryItemData):
-                $item = $galleryItemData['item'];
-                $canDelete = $galleryItemData['canDelete'];
-                $photoPath = $galleryItemData['photoPath'];
-                $exists = $galleryItemData['exists'];
-                ?>
-                <div class="col-md-4 col-lg-3 mb-4">
-                    <div class="cb-dark-card p-2 h-100 d-flex flex-column">
-                        <!-- Fotka -->
+        <!-- HLAVNA FOTKA - zobrazí sa len jedna -->
+        <?php if (!empty($galleryItems)):
+            // 1.fotkau
+            $mainGalleryItem = $galleryItems[0];
+            $item = $mainGalleryItem['item'];
+            $canDelete = $mainGalleryItem['canDelete'];
+            $photoPath = $mainGalleryItem['photoPath'];
+            $exists = $mainGalleryItem['exists'];
+            ?>
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="cb-dark-card p-3">
+                        <!-- Hlavna, klikatelne cez modal -->
                         <?php if ($exists): ?>
-                            <a href="<?= htmlspecialchars($photoPath) ?>"
-                               data-bs-toggle="modal"
-                               data-bs-target="#galleryModal"
-                               onclick="setGalleryImage('<?= htmlspecialchars($photoPath) ?>')">
-                                <img src="<?= htmlspecialchars($photoPath) ?>"
-                                     class="img-fluid rounded"
-                                     alt="Galéria obrázok"
-                                     style="width: 100%; height: 200px; object-fit: cover; cursor: pointer;">
-                            </a>
+                            <div class="text-center mb-3">
+                                <a href="#"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#galleryCarouselModal">
+                                    <img src="<?= htmlspecialchars($photoPath) ?>"
+                                         class="img-fluid rounded"
+                                         alt="Galéria"
+                                         style="width: 100%; max-height: 500px; object-fit: cover; cursor: pointer;">
+                                </a>
+                            </div>
                         <?php else: ?>
                             <div class="rounded d-flex align-items-center justify-content-center"
-                                 style="width: 100%; height: 200px; background-color: #d4af37;">
-                                <i class="bi bi-image" style="font-size: 3rem; color: #1a1a1a;"></i>
+                                 style="width: 100%; height: 300px; background-color: #d4af37;">
+                                <i class="bi bi-image" style="font-size: 5rem; color: #1a1a1a;"></i>
                             </div>
                         <?php endif; ?>
 
-                        <!-- Popis -->
+                        <!-- Popis hlavnej fotky -->
                         <?php if ($item->getServices()): ?>
-                            <div class="mt-2 flex-grow-1">
-                                <p class="cb-text-muted small mb-2">
+                            <div class="text-center mt-3">
+                                <p class="cb-price mb-2" style="font-size: 1.6rem;">
                                     <?= htmlspecialchars($item->getServices()) ?>
+                                </p>
+                                <!- meno barbera -->
+                                <p class="cb-text-muted small">
+                                    <i class="bi bi-person"></i> <?= htmlspecialchars($mainGalleryItem['barberName']) ?>
+                                </p>
+                            </div>
+                        <?php else: ?>
+                            <!-- ak nieje popois, tak meno -->
+                            <div class="text-center mt-3">
+                                <p class="cb-text-muted small">
+                                    <i class="bi bi-person"></i> <?= htmlspecialchars($mainGalleryItem['barberName']) ?>
                                 </p>
                             </div>
                         <?php endif; ?>
 
-                        <!-- tlacidlo an zmazanie -->
+                        <button class="btn btn-outline-warning btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#galleryCarouselModal">
+                            <i class="bi bi-arrows-fullscreen"></i> Otvoriť galériu
+                        </button>
+
+                        <!-- zmazanie, ak je opravneny -->
                         <?php if ($canDelete): ?>
-                            <div class="mt-2">
+                            <div class="mt-3">
                                 <form action="<?= $link->url('gallery.delete') ?>" method="POST"
                                       onsubmit="return confirm('Naozaj chcete odstrániť túto fotku?');">
                                     <input type="hidden" name="id" value="<?= $item->getId() ?>">
                                     <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                                        <i class="bi bi-trash"></i> Odstrániť
+                                        <i class="bi bi-trash"></i> Odstrániť túto fotku
                                     </button>
                                 </form>
                             </div>
                         <?php endif; ?>
                     </div>
                 </div>
-            <?php endforeach; ?>
-        </div>
+            </div>
+        <?php else: ?>
+            <!-- ak ziadne fotku -->
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="cb-dark-card text-center p-5">
+                        <i class="bi bi-images" style="font-size: 4rem; color: #d4af37;"></i>
+                        <p class="cb-text-muted mt-3">Galéria je momentálne prázdna.</p>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
 
-        <!--na pridanie admin -->
+        <!-- Upload fotkt (iba pre admin/barbera) -->
         <?php if ($showUploadForm): ?>
             <div class="row justify-content-center mt-5">
                 <div class="col-md-8">
                     <div class="cb-dark-card p-4">
                         <h3 class="cb-gold-text mb-4">Pridať novú fotku do galérie</h3>
                         <form action="<?= $link->url('gallery.store') ?>" method="POST" enctype="multipart/form-data">
-                            <!-- Admin vyberie aj barbera -->
-                            <div class="mb-3">
-                                <label for="barber_id" class="form-label cb-text-muted">Barber</label>
-                                <select class="form-control" id="barber_id" name="barber_id" required>
-                                    <option value="">Vyberte barbera</option>
-                                    <?php foreach ($allBarbersForAdmin as $barber): ?>
-                                        <?php $barberUser = \App\Models\User::getOne($barber->getUserId()); ?>
-                                        <option value="<?= $barber->getId() ?>">
-                                            <?= htmlspecialchars($barberUser->getFullName()) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                            <!-- Admin vyberie barbera -->
+                            <?php if ($loggedUser && $loggedUser->getPermissions() === \App\Models\User::ROLE_ADMIN): ?>
+                                <div class="mb-3">
+                                    <label for="barber_id" class="form-label cb-text-muted">Barber</label>
+                                    <select class="form-control" id="barber_id" name="barber_id" required>
+                                        <option value="">Vyberte barbera</option>
+                                        <?php foreach ($allBarbersForAdmin as $barber): ?>
+                                            <?php $barberUser = \App\Models\User::getOne($barber->getUserId()); ?>
+                                            <option value="<?= $barber->getId() ?>">
+                                                <?= htmlspecialchars($barberUser->getFullName()) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            <?php elseif ($loggedUser && $loggedUser->getPermissions() === \App\Models\User::ROLE_BARBER): ?>
+                                <?php
+                                $loggedBarber = \App\Models\Barber::getByUserId($loggedUser->getId());
+                                if ($loggedBarber): ?>
+                                    <input type="hidden" name="barber_id" value="<?= $loggedBarber->getId() ?>">
+                                    <div class="mb-3">
+                                        <label class="form-label cb-text-muted">Barber</label>
+                                        <div class="form-control bg-dark text-white" style="border: 1px solid #333; cursor: not-allowed;">
+                                            <?= htmlspecialchars($loggedUser->getFullName()) ?> (Vy)
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            <?php endif; ?>
 
                             <div class="mb-3">
                                 <label for="photo" class="form-label cb-text-muted">Fotka</label>
@@ -216,9 +309,6 @@
                                 <label for="services" class="form-label cb-text-muted">Popis (voliteľné)</label>
                                 <input type="text" class="form-control" id="services" name="services"
                                        placeholder="Napríklad: Pánsky strih, úprava brady...">
-                                <div class="form-text cb-text-muted">
-                                    Môžete uviesť, aké služby sú na fotke.
-                                </div>
                             </div>
 
                             <button type="submit" class="btn btn-warning">
@@ -229,15 +319,100 @@
                 </div>
             </div>
         <?php endif; ?>
-
-        <?php if (empty($galleryItems)): ?>
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="cb-dark-card text-center">
-                        <p class="cb-text-muted mb-0">Galéria je momentálne prázdna.</p>
-                    </div>
-                </div>
-            </div>
-        <?php endif; ?>
     </div>
 </section>
+
+<!-- MODAL S BOOTSTRAP CAROUSEL -->
+<div class="modal fade" id="galleryCarouselModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title cb-gold-text">Galéria <span class="badge bg-warning text-dark"><?= count($galleryItems) ?> fotiek</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <!-- Bootstrap Carousel -->
+                <div id="galleryCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        <?php foreach ($galleryItems as $index => $galleryItemData): ?>
+                            <button type="button"
+                                    data-bs-target="#galleryCarousel"
+                                    data-bs-slide-to="<?= $index ?>"
+                                    class="<?= $index === 0 ? 'active' : '' ?>"
+                                    aria-label="Slide <?= $index + 1 ?>"></button>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <!-- Carousel itemy -->
+                    <div class="carousel-inner">
+                        <?php foreach ($galleryItems as $index => $galleryItemData):
+                            $item = $galleryItemData['item'];
+                            $photoPath = $galleryItemData['photoPath'];
+                            $exists = $galleryItemData['exists'];
+                            $canDeleteModal = $galleryItemData['canDelete'];
+                            ?>
+                            <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                                <div class="text-center" style="min-height: 70vh;">
+                                    <?php if ($exists): ?>
+                                        <img src="<?= htmlspecialchars($photoPath) ?>"
+                                             class="d-block mx-auto img-fluid"
+                                             alt="Galéria obrázok"
+                                             style="max-height: 60vh; max-width: 100%; object-fit: contain;">
+                                    <?php else: ?>
+                                        <div class="d-flex align-items-center justify-content-center mx-auto"
+                                             style="height: 60vh; width: 100%; background-color: #d4af37;">
+                                            <i class="bi bi-image" style="font-size: 5rem; color: #1a1a1a;"></i>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <!-- Popis pod fotkou -->
+                                    <div class="mt-3 px-4">
+                                        <?php if ($item->getServices()): ?>
+                                            <p class="cb-price h4 mb-2 text-center"><?= htmlspecialchars($item->getServices()) ?></p>
+                                        <?php endif; ?>
+
+                                        <!-- Meno barbera -->
+                                        <p class="cb-text-muted text-center small mb-2">
+                                            <i class="bi bi-person"></i> <?= htmlspecialchars($galleryItemData['barberName']) ?>
+                                        </p>
+
+                                        <!-- cislovanie -->
+                                        <p class="text-muted text-center small mt-2">
+                                            Fotka <?= $index + 1 ?> z <?= count($galleryItems) ?>
+                                        </p>
+
+                                        <!-- na zmazanie v modale -->
+                                        <?php if ($canDeleteModal): ?>
+                                            <div class="text-center mt-2">
+                                                <form action="<?= $link->url('gallery.delete') ?>" method="POST"
+                                                      onsubmit="return confirm('Naozaj chcete odstrániť túto fotku?');">
+                                                    <input type="hidden" name="id" value="<?= $item->getId() ?>">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-trash"></i> Odstrániť
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <!-- Carousel Controls -->
+                    <button class="carousel-control-prev" type="button" data-bs-target="#galleryCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#galleryCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zavrieť</button>
+            </div>
+        </div>
+    </div>
+</div>

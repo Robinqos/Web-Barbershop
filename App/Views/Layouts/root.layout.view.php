@@ -60,13 +60,16 @@
                     <a class="nav-link" href="<?= $link->url('home.index') ?>">Domov</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="<?= $link->url('home.index') ?>#onas">O nás</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="<?= $link->url('home.index') ?>#sluzby">Služby</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="<?= $link->url('home.index') ?>#barberi">Barberi</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= $link->url('reservation.create') ?>">Rezervácia</a>
+                    <a class="nav-link" href="<?= $link->url('home.index') ?>#galeria">Galéria</a>
                 </li>
             </ul>
 
