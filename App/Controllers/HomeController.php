@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Barber;
+use App\Models\Gallery;
 use App\Models\Review;
 use App\Models\Service;
 use App\Models\User;
@@ -100,10 +101,61 @@ class HomeController extends BaseController
             ];
         }
 
-        //poslat do pohladu
+        // galeria
+        $galleryItems = Gallery::getActiveItems(8); // 8 najnovsich
+        $loggedUser = null;
+        $showUploadForm = false;
+        $allBarbersForAdmin = [];
+        $galleryItemsData = [];
+
+        if ($this->user->isLoggedIn()) {
+            $loggedUser = $this->app->getAuthenticator()->getUser();
+
+            // Kontrola, ci sa ma zobrazit formular
+            if ($loggedUser->getPermissions() === User::ROLE_ADMIN) {
+                $showUploadForm = true;
+                $allBarbersForAdmin = Barber::getAll();
+            } elseif ($loggedUser->getPermissions() === User::ROLE_BARBER) {
+                $loggedBarber = Barber::getByUserId($loggedUser->getId());
+                if ($loggedBarber) {
+                    $showUploadForm = true;
+                }
+            }
+        }
+
+        // info o pravach v galleryitems
+        foreach ($galleryItems as $item) {
+            $canDelete = false;
+
+            if ($loggedUser) {
+                if ($loggedUser->getPermissions() === User::ROLE_ADMIN) {
+                    $canDelete = true;
+                } elseif ($loggedUser->getPermissions() === User::ROLE_BARBER) {
+                    $loggedBarber = Barber::getByUserId($loggedUser->getId());
+                    if ($loggedBarber && $item->getBarberId() === $loggedBarber->getId()) {
+                        $canDelete = true;
+                    }
+                }
+            }
+
+            $photoPath = $item->getPhotoPath();
+            $exists = $photoPath && file_exists($_SERVER['DOCUMENT_ROOT'] . $photoPath);
+
+            $galleryItemsData[] = [
+                'item' => $item,
+                'canDelete' => $canDelete,
+                'photoPath' => $photoPath,
+                'exists' => $exists
+            ];
+        }
+
         return $this->html([
             'services' => $services,
-            'barbers' => $barbersWithDetails
+            'barbers' => $barbersWithDetails,
+            'galleryItems' => $galleryItemsData,
+            'loggedUser' => $loggedUser,
+            'showUploadForm' => $showUploadForm,
+            'allBarbersForAdmin' => $allBarbersForAdmin
         ]);
     }
 

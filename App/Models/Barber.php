@@ -73,10 +73,6 @@ class Barber extends Model
     {
         return User::getOne($this->user_id);
     }
-    public static function getOneByUserId(int $userId): ?self
-    {
-        return self::getOne('user_id = ?', [$userId]);
-    }
 
     public function getName(): string
     {

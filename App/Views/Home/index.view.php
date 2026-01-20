@@ -1,7 +1,11 @@
 <?php
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var \App\Models\Service[] $services */
-/** @var array $barbers Pole s údajmi o barberoch */
+/** @var array $barbers  */
+/** @var array $galleryItems  */
+/** @var \App\Models\User|null $loggedUser */
+/** @var bool $showUploadForm */
+/** @var array $allBarbersForAdmin */
 ?>
 
 <!-- HERO SEKCIA -->
@@ -107,6 +111,130 @@
                 <div class="col-md-8">
                     <div class="cb-dark-card text-center">
                         <p class="cb-text-muted mb-0">Momentálne nie sú k dispozícii žiadni barberi.</p>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</section>
+
+<!-- Gallery -->
+<section id="galeria" class="cb-dark-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 cb-gold-text">GALÉRIA</h2>
+                <p class="lead cb-text-muted">Naše najlepšie práce</p>
+            </div>
+        </div>
+
+        <!-- fotky -->
+        <div class="row justify-content-center">
+            <?php foreach ($galleryItems as $galleryItemData):
+                $item = $galleryItemData['item'];
+                $canDelete = $galleryItemData['canDelete'];
+                $photoPath = $galleryItemData['photoPath'];
+                $exists = $galleryItemData['exists'];
+                ?>
+                <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="cb-dark-card p-2 h-100 d-flex flex-column">
+                        <!-- Fotka -->
+                        <?php if ($exists): ?>
+                            <a href="<?= htmlspecialchars($photoPath) ?>"
+                               data-bs-toggle="modal"
+                               data-bs-target="#galleryModal"
+                               onclick="setGalleryImage('<?= htmlspecialchars($photoPath) ?>')">
+                                <img src="<?= htmlspecialchars($photoPath) ?>"
+                                     class="img-fluid rounded"
+                                     alt="Galéria obrázok"
+                                     style="width: 100%; height: 200px; object-fit: cover; cursor: pointer;">
+                            </a>
+                        <?php else: ?>
+                            <div class="rounded d-flex align-items-center justify-content-center"
+                                 style="width: 100%; height: 200px; background-color: #d4af37;">
+                                <i class="bi bi-image" style="font-size: 3rem; color: #1a1a1a;"></i>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Popis -->
+                        <?php if ($item->getServices()): ?>
+                            <div class="mt-2 flex-grow-1">
+                                <p class="cb-text-muted small mb-2">
+                                    <?= htmlspecialchars($item->getServices()) ?>
+                                </p>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- tlacidlo an zmazanie -->
+                        <?php if ($canDelete): ?>
+                            <div class="mt-2">
+                                <form action="<?= $link->url('gallery.delete') ?>" method="POST"
+                                      onsubmit="return confirm('Naozaj chcete odstrániť túto fotku?');">
+                                    <input type="hidden" name="id" value="<?= $item->getId() ?>">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                        <i class="bi bi-trash"></i> Odstrániť
+                                    </button>
+                                </form>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!--na pridanie admin -->
+        <?php if ($showUploadForm): ?>
+            <div class="row justify-content-center mt-5">
+                <div class="col-md-8">
+                    <div class="cb-dark-card p-4">
+                        <h3 class="cb-gold-text mb-4">Pridať novú fotku do galérie</h3>
+                        <form action="<?= $link->url('gallery.store') ?>" method="POST" enctype="multipart/form-data">
+                            <!-- Admin vyberie aj barbera -->
+                            <div class="mb-3">
+                                <label for="barber_id" class="form-label cb-text-muted">Barber</label>
+                                <select class="form-control" id="barber_id" name="barber_id" required>
+                                    <option value="">Vyberte barbera</option>
+                                    <?php foreach ($allBarbersForAdmin as $barber): ?>
+                                        <?php $barberUser = \App\Models\User::getOne($barber->getUserId()); ?>
+                                        <option value="<?= $barber->getId() ?>">
+                                            <?= htmlspecialchars($barberUser->getFullName()) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="photo" class="form-label cb-text-muted">Fotka</label>
+                                <input type="file" class="form-control" id="photo" name="photo" accept="image/*" required>
+                                <div class="form-text cb-text-muted">
+                                    Podporované formáty: JPG, PNG, GIF, WebP. Maximálna veľkosť: 5MB.
+                                </div>
+                            </div>
+
+                            <!-- Popis -->
+                            <div class="mb-3">
+                                <label for="services" class="form-label cb-text-muted">Popis (voliteľné)</label>
+                                <input type="text" class="form-control" id="services" name="services"
+                                       placeholder="Napríklad: Pánsky strih, úprava brady...">
+                                <div class="form-text cb-text-muted">
+                                    Môžete uviesť, aké služby sú na fotke.
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-upload"></i> Nahrať fotku
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <?php if (empty($galleryItems)): ?>
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="cb-dark-card text-center">
+                        <p class="cb-text-muted mb-0">Galéria je momentálne prázdna.</p>
                     </div>
                 </div>
             </div>
