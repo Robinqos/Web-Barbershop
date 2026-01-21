@@ -1,6 +1,5 @@
 Semestrálna práca VAII 2025/2026
 
-O projekte
 Tento projekt predstavuje moju semestrálnu prácu z predmetu Vývoj aplikácií pre internet a intranet (VAII) na Fakulte riadenia a informatiky Žilinskej univerzity.
 
 Cieľom práce bolo vytvorenie webovej aplikácie požičovne s využitím frameworku Vaiiko, ktorý demonštruje princípy MVC architektúry.
