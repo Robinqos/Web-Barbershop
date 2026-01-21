@@ -7,6 +7,7 @@
 /** @var array $allReservations */
 /** @var int $totalReservations */
 /** @var int $todayReservationsCount */
+/** @var $error */
 ?>
 
 <div class="container-fluid mt-4">
@@ -24,7 +25,7 @@
                             <i class="bi bi-pencil"></i> Upraviť profil
                         </a>
                         <!-- deaktivacia -->
-                        <form method="POST" action="<?= $link->url('barber.toggleActivation') ?>"
+                        <form method="POST" action="<?= $link->url('barber.toggleActivation', ['error' => "Nemôžete deaktivovať svoj profil, pretože máte nadchádzajúce rezervácie."] ) ?>"
                               class="d-inline-block"
                               onsubmit="return confirm('Naozaj sa chcete deaktivovať? Po deaktivácii nebudete môcť prijímať nové rezervácie.')">
                             <button type="submit" class="btn btn-warning btn-sm">
@@ -34,6 +35,7 @@
                         <small class="ms-2 text-dark">(napr. ak idete na dovolenku)</small>
                     </div>
                 </div>
+            <strong class="text-danger"><?= $error ?? '' ?></strong>
             <?php else: ?>
                 <div class="alert alert-danger">
                     <i class="bi bi-exclamation-triangle"></i> Váš účet je <strong>neaktívny</strong>.

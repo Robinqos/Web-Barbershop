@@ -243,7 +243,7 @@ class BarberController extends BaseController
 
         $totalReservations = count($allReservations);
         $todayReservationsCount = count($todayReservations);
-
+        $error = $request->value('error') ?? null;
         return $this->html([
             'user' => $user,
             'barber' => $barber,
@@ -251,7 +251,8 @@ class BarberController extends BaseController
             'upcomingReservations' => $upcomingReservations,
             'allReservations' => $allReservations,
             'totalReservations' => $totalReservations,
-            'todayReservationsCount' => $todayReservationsCount
+            'todayReservationsCount' => $todayReservationsCount,
+            'error' => $error
         ], 'index');
     }
 
@@ -325,7 +326,7 @@ class BarberController extends BaseController
             return $this->redirect($this->url("auth.login"));
         }
         $user = $identity;
-        
+
         $barber = Barber::getByUserId($user->getId());
 
         if (!$barber) {
@@ -340,15 +341,15 @@ class BarberController extends BaseController
             );
 
             if (!empty($upcomingReservations)) {
-                //todo:potvrdenie ze zrusil
-                return $this->redirect($this->url("barber.index"));
+                $error = $request->value('error') ?? null;
+                return $this->redirect($this->url("barber.index", ['error' => $error]) );
             }
         }
 
         // Prepneme stav
         $barber->setIsActive(!$barber->getIsActive());
         $barber->save();
-
+        $error = $request->value('error') ?? null;
         return $this->redirect($this->url("barber.index"));
     }
 }
