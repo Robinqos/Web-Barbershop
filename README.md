@@ -1,4 +1,5 @@
 Semestrálna práca VAII 2025/2026
+
 O projekte
 Tento projekt predstavuje moju semestrálnu prácu z predmetu Vývoj aplikácií pre internet a intranet (VAII) na Fakulte riadenia a informatiky Žilinskej univerzity.
 
