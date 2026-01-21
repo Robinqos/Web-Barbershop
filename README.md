@@ -1,30 +1,37 @@
-# About
+Semestrálna práca VAII 2025/2026
+O projekte
+Tento projekt predstavuje moju semestrálnu prácu z predmetu Vývoj aplikácií pre internet a intranet (VAII) na Fakulte riadenia a informatiky Žilinskej univerzity.
 
-This framework was created to support the teaching of the subject Development of intranet and intranet applications 
-(VAII) at the [Faculty of Management Science and Informatics](https://www.fri.uniza.sk/) of
-[University of Žilina](https://www.uniza.sk/). Framework demonstrates how the MVC architecture works.
+Cieľom práce bolo vytvorenie webovej aplikácie požičovne s využitím frameworku Vaiiko, ktorý demonštruje princípy MVC architektúry.
 
-# Instructions and documentation 
+Návod na lokálne spustenie
+Na spustenie webovej aplikácie je potrebné mať nainštalovaný Docker (napr. Docker Desktop) a vývojové prostredie pre PHP (napr. PhpStorm).
 
-The framework source code is fully commented. In case you need additional information to understand,
-visit the [WIKI stránky](https://github.com/thevajko/vaiicko/wiki/00-%C3%9Avodn%C3%A9-inform%C3%A1cie) (only in Slovak).
+1. Stiahnutie repozitára
+Napríklad:
+git clone https://github.com/Robinqos/Web-Barbershop
+2. Spustenie aplikácie
+Spustite Docker (Docker Desktop)
 
-# Docker configuration
+Otvorte priečinok projektu
 
-The Framework has a basic configuration for running and debugging web applications in the `<root>/docker` directory. 
-All necessary services are set in `docker-compose.yml` file. After starting them, it creates the following services:
+Spustite služby pomocou súboru docker-compose.yml
 
-- web server (Apache) with the __PHP 8.3__ 
-- MariaDB database server with a created _database_ named according `MYSQL_DATABASE` environment variable
-- Adminer application for MariaDB administration
+V PhpStorm: kliknite pravým tlačidlom na docker-compose.yml → Run
 
-## Other notes:
+3. Kontrola spustených služieb
+Po úspešnom spustení by sa v Docker Desktop v sekcii Containers mali objaviť tieto služby:
 
-- __WWW document root__ is set to the `public` in the project directory.
-- The website is available at [http://localhost/](http://localhost/).
-- The server includes an extension for PHP code debugging [__Xdebug 3__](https://xdebug.org/), uses the  
-  port __9003__ and works in "auto-start" mode.
-- PHP contains the __PDO__ extension.
-- The database server is available locally on the port __3306__. The default login details can be found in `.env` file.
-- Adminer is available at [http://localhost:8080/](http://localhost:8080/)
+adminer - nástroj na správu databázy
 
+mariadb - databázový server
+
+thevajko/vaii-web-server:main - webový server s aplikáciou
+
+4. Prístup k aplikácii
+Webová aplikácia: http://localhost/
+
+Adminer (databáza): http://localhost:8080/
+
+
+V priečinku /docker/sql sa nachádzajú SQL skripty s tabuľkami a vzorovými dátami. Ak by nastal problém s automatickým vytvorením databázy, môžete tieto súbory manuálne importovať cez Adminer.
