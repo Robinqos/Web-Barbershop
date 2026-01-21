@@ -1,4 +1,7 @@
 // public/js/userValidation.js
+/**
+ * NA TEJTO SOM SI POMAHAL S AI
+ */
 const Validator = {
     showError(field, message) {
         field.classList.add('is-invalid');

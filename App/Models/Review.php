@@ -99,12 +99,12 @@ class Review extends Model
 
     public function getUser(): ?User
     {
-        return User::getOne($this->user_id);
+        return $this->getOneRelated(User::class, 'user_id');
     }
 
     public function getBarber(): ?Barber
     {
-        return Barber::getOne($this->barber_id);
+        return $this->getOneRelated(Barber::class, 'barber_id');
     }
 
     public function getReservation(): ?Reservation
@@ -112,7 +112,7 @@ class Review extends Model
         if ($this->reservation_id === null) {
             return null;
         }
-        return Reservation::getOne($this->reservation_id);
+        return $this->getOneRelated(Reservation::class, 'reservation_id');
     }
 
     public function getFormattedCreatedAt(): string
@@ -125,26 +125,4 @@ class Review extends Model
     {
         return str_repeat('★', $this->rating) . str_repeat('☆', 5 - $this->rating);
     }
-
-    public static function getReviewForReservation(int $reservationId): ?self
-    {
-        return self::getOne('reservation_id = ?', [$reservationId]);
-    }
-
-    public static function getReviewByUserAndBarber(int $userId, int $barberId): ?self
-    {
-        return self::getOne('user_id = ? AND barber_id = ? AND reservation_id IS NULL', [$userId, $barberId]);
-    }
-
-    public static function getReviewForReservationOrUserBarber(int $reservationId, int $userId, int $barberId): ?self
-    {
-        $review = self::getOne('reservation_id = ?', [$reservationId]);
-
-        if (!$review) {
-            $review = self::getOne('user_id = ? AND barber_id = ? AND reservation_id IS NULL', [$userId, $barberId]);
-        }
-        return $review;
-    }
-
-
 }

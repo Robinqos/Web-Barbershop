@@ -22,3 +22,8 @@ CREATE TABLE `reviews` (
                            CONSTRAINT `reviews_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
                            CONSTRAINT `reviews_ibfk_4` FOREIGN KEY (`reservation_id`) REFERENCES `reservations` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+INSERT INTO `reviews` (`id`, `user_id`, `barber_id`, `reservation_id`, `rating`, `created_at`) VALUES
+                                                                                                   (1,	4,	1,	2,	4,	'2026-01-21 20:09:36'),
+                                                                                                   (2,	4,	1,	1,	3,	'2026-01-21 20:09:39'),
+                                                                                                   (3,	5,	2,	5,	5,	'2026-01-21 20:10:33'),
+                                                                                                   (4,	5,	2,	4,	5,	'2026-01-21 20:10:36');

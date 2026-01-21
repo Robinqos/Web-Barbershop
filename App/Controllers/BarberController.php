@@ -17,18 +17,24 @@ class BarberController extends BaseController
             return false;
         }
 
-        $userModel = $this->app->getAuthenticator()->getUser();
+        // yiskaj identitu
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
 
-        if (!$userModel) {
+        // ci je user model
+        if (!$identity instanceof User) {
             return false;
         }
 
-        return $userModel->getPermissions() === User::ROLE_BARBER;
+        return $identity->getPermissions() === User::ROLE_BARBER;
     }
 
     public function editProfile(Request $request): Response
     {
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
         $barber = Barber::getByUserId($user->getId());
 
         if (!$barber) {
@@ -44,7 +50,11 @@ class BarberController extends BaseController
     // spracovanie zmien profilu
     public function updateProfile(Request $request): Response
     {
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
         $barber = Barber::getByUserId($user->getId());
 
         if (!$barber) {
@@ -112,7 +122,11 @@ class BarberController extends BaseController
 
     public function uploadPhoto(Request $request): Response
     {
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
         $barber = Barber::getByUserId($user->getId());
 
         if (!$barber) {
@@ -187,7 +201,11 @@ class BarberController extends BaseController
     //todo:obmedzit velkost fotky
     public function index(Request $request): Response
     {
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
 
         // barber z tohoto pouzivatela
         $barber = Barber::getByUserId($user->getId());
@@ -242,7 +260,11 @@ class BarberController extends BaseController
         $id = (int) $request->value('id');
         $reservation = Reservation::getOne($id);
 
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
         $barber = Barber::getByUserId($user->getId());
 
         if (!$reservation || !$barber) {
@@ -269,7 +291,12 @@ class BarberController extends BaseController
         $id = (int) $request->value('id');
         $reservation = Reservation::getOne($id);
 
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
+
         $barber = Barber::getByUserId($user->getId());
 
         if (!$reservation || !$barber) {
@@ -293,7 +320,12 @@ class BarberController extends BaseController
     }
     public function toggleActivation(Request $request): Response
     {
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
+        
         $barber = Barber::getByUserId($user->getId());
 
         if (!$barber) {

@@ -7,12 +7,12 @@ use Framework\Core\App;
 use Framework\Core\IIdentity;
 
 /**
- * Class NoHashAuthenticator
+ * Class HashAuthenticator
  * A basic implementation of user authentication using hardcoded credentials.
  *
  * @package App\Auth
  */
-class NoHashAuthenticator extends SessionAuthenticator
+class HashAuthenticator extends SessionAuthenticator
 {
     // Hardcoded username for authentication
     public const LOGIN = "admin";
@@ -30,14 +30,22 @@ class NoHashAuthenticator extends SessionAuthenticator
     //kazdemu bere z databazy
     protected function authenticate(string $email, string $password): ?IIdentity
     {
-        $user = User::getAll('`email` LIKE ?', [$email]);
+        $user = User::getAll('`email` = ?', [$email]);
+
         if(count($user) === 1) {
-            /*if ($email === self::LOGIN && password_verify($password, self::PASSWORD_HASH)) {
-                return new DummyUser(self::USERNAME);
-            }*/
-            if($password === $user[0]->getPassword()) {
-                return $user[0];
+            $user = $user[0];
+
+            if($user->checkPassword($password)) {
+                return $user;
             }
+            // na stare plaint text hesla
+            $storedPassword = $user->getPassword();
+            if ($password === $storedPassword) {
+                $user->setPassword($password);
+                $user->save();
+                return $user;
+            }
+
         }
         return null;
     }

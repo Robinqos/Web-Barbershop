@@ -53,7 +53,12 @@ class User extends Model implements IIdentity
 
     public function setPassword(string $password): void
     {
-        $this->password = $password;
+        $this->password = password_hash($password, PASSWORD_DEFAULT);
+    }
+
+    public function checkPassword(string $password): bool
+    {
+        return password_verify($password, $this->password);
     }
 
     public function getPhone(): string
@@ -100,24 +105,6 @@ class User extends Model implements IIdentity
     {
         $users = self::getAll('email = ?', [$email]);
         return !empty($users) ? $users[0] : null;
-    }
-
-    public function getBarber(): ?Barber
-    {
-        if ($this->getPermissions() === self::ROLE_BARBER) {
-            return Barber::getByUserId($this->getId());
-        }
-        return null;
-    }
-
-    public function isAdmin(): bool
-    {
-        return $this->permissions >= self::ROLE_ADMIN;
-    }
-
-    public function isBarber(): bool
-    {
-        return $this->getPermissions() === self::ROLE_BARBER;
     }
 
 }

@@ -1,3 +1,6 @@
+/**
+ * NA TEJTO SOM SI POMAHAL S AI
+ */
 class InlineEditor {
     constructor(options = {}) {
         this.options = {

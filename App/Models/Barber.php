@@ -13,6 +13,7 @@ class Barber extends Model
     protected int $is_active;
     protected string $created_at;
 
+    //todo:uprav js, sprav trait, a odstan nepotrebne metody a veci z db
     public function getId(): int
     {
         return $this->id;

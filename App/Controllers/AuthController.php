@@ -10,6 +10,7 @@ use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 use Framework\Http\Responses\ViewResponse;
+use App\Traits\ValidationTrait;
 
 /**
  * Class AuthController
@@ -21,21 +22,22 @@ use Framework\Http\Responses\ViewResponse;
  */
 class AuthController extends BaseController
 {
-    /**
-     * Redirects to the login page.
-     *
-     * This action serves as the default landing point for the authentication section of the application, directing
-     * users to the login URL specified in the configuration.
-     *
-     * @return Response The response object for the redirection to the login page.
-     */
+    use ValidationTrait;
+
     public function index(Request $request): Response
     {
         if (!($this->app->getAppUser()->isLoggedIn())) {
             return $this->redirect($this->url("auth.login"));
         }
 
-        $user = $this->app->getAuthenticator()->getUser();
+        // ziskame user
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+
+        $user = $identity;
 
         if ($user->getPermissions() >= User::ROLE_ADMIN) {
             return $this->redirect($this->url("admin.index"));
@@ -47,8 +49,8 @@ class AuthController extends BaseController
 
         // prihlaseny user = nacitaj rezervacie
         $reservations = Reservation::getAll(
-            'user_id = ? AND status IN (?, ?)',
-            [$user->getId(), 'pending', 'completed'],
+            'user_id = ? AND status IN (?, ?, ?)',
+            [$user->getId(), 'pending', 'completed', 'canceled'],
             'reservation_date DESC'
         );
 
@@ -69,33 +71,25 @@ class AuthController extends BaseController
         return $this->html(compact('reservations', 'reviewMap'));
     }
 
-    /**
-     * Authenticates a user and processes the login request.
-     *
-     * This action handles user login attempts. If the login form is submitted, it attempts to authenticate the user
-     * with the provided credentials. Upon successful login, the user is redirected to the admin dashboard.
-     * If authentication fails, an error message is displayed on the login page.
-     *
-     * @return Response The response object which can either redirect on success or render the login view with
-     *                  an error message on failure.
-     * @throws Exception If the parameter for the URL generator is invalid throws an exception.
-     */
     public function login(Request $request): Response
     {
         $logged = null;
         if ($request->hasValue('submit')) {
             $logged = $this->app->getAuthenticator()->login($request->value('email'), $request->value('password'));
             if ($logged) {
-                $user = $this->app->getAuthenticator()->getUser();
-                date_default_timezone_set('Europe/Bratislava');
-                $user->setLastLogin(date('Y-m-d H:i:s'));
-                $user->save();
+                $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
 
-                // podla opravneni presmerujem
-                if ($user->getPermissions() >= User::ROLE_ADMIN) {
-                    return $this->redirect($this->url("admin.index"));
-                } else {
-                    return $this->redirect($this->url("auth.index"));
+                if ($identity instanceof \App\Models\User) {
+                    $user = $identity;
+                    date_default_timezone_set('Europe/Bratislava');
+                    $user->setLastLogin(date('Y-m-d H:i:s'));
+                    $user->save();
+
+                    if ($user->getPermissions() >= User::ROLE_ADMIN) {
+                        return $this->redirect($this->url("admin.index"));
+                    } else {
+                        return $this->redirect($this->url("auth.index"));
+                    }
                 }
             }
         }
@@ -117,7 +111,6 @@ class AuthController extends BaseController
         return $this->redirect($this->url("auth.login"));
     }
 
-    //NAUCNA METODA
     //MOJ SERVER JE CONTROLLER
     //najprv rob kontroly na servery
     public function register(Request $request): Response
@@ -127,31 +120,31 @@ class AuthController extends BaseController
         if (isset($formData['submit'])) {
             $errors = [];
 
-            if ($error = $this->validateFullName($formData['full_name'] ?? null, true)) {
+            if ($error = $this->validateFullName($formData['full_name'] ?? null, true, false)) {
                 $errors['full_name'] = 'Neplatné údaje';
             }
 
-            if ($error = $this->validatePhone($formData['phone'] ?? null, true)) {
+            if ($error = $this->validatePhone($formData['phone'] ?? null, true, false)) {
                 $errors['phone'] = 'Neplatné údaje';
             }
 
-            if ($error = $this->validateEmail($formData['email'] ?? null, true, true)) {
+            if ($error = $this->validateEmail($formData['email'] ?? null, true, true, 0, false)) {
                 $errors['email'] = 'Neplatné údaje';
             }
 
-            if ($error = $this->validatePassword($formData['password'] ?? null, true)) {
+            if ($error = $this->validatePassword($formData['password'] ?? null, true, false)) {
                 $errors['password'] = 'Neplatné údaje';
             }
 
-            if ($error = $this->validatePasswordConfirm($formData['password'] ?? null,
-                $formData['password_confirm'] ?? null,
-                true)) {
-                $errors['password_confirm'] = 'Neplatné údaje';
+            if ($error = $this->validatePasswordConfirm($formData['password'] ?? null,$formData['password_confirm'] ?? null,
+                true,
+                false
+            )) {
+                $errors['password_confirm'] = $error;
             }
 
             if ($error = $this->validateTerms($formData['terms'] ?? null, true)) {
                 $errors['terms'] = 'Musíte súhlasiť so spracovaním osobných údajov';
-                // Toto je OK, lebo súhlas s podmienkami je bežná vec
             }
 
             if (!empty($errors)) {
@@ -186,32 +179,47 @@ class AuthController extends BaseController
 
     public function edit(Request $request): Response
     {
-        $user = $this->app->getAuthenticator()->getUser(); //aktualne prihlaseny user
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof \App\Models\User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity; //aktualne prihlaseny user
         return $this->html(compact('user'));
     }
 
     public function update(Request $request): Response
     {
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
         $formData = $request->post();
 
         if (isset($formData['submit'])) {
             $errors = [];
 
             // check full name
-            if ($error = $this->validateFullName($formData['full_name'] ?? null, false)) {
+            if ($error = $this->validateFullName($formData['full_name'] ?? null, true, false)) {
                 $errors['full_name'] = $error;
             }
 
             // check phone
-            if ($error = $this->validatePhone($formData['phone'] ?? null, true)) {
+            if ($error = $this->validatePhone($formData['phone'] ?? null, true, false)) {
                 $errors['phone'] = $error;
             }
 
             // check email
-            if ($error = $this->validateEmail($formData['email'] ?? null, true, false)) {
+            if ($error = $this->validateEmail(
+                $formData['email'] ?? null,
+                true,
+                false,
+                $user->getId(),
+                false
+            )) {
                 $errors['email'] = $error;
             } else {
+                // kontrola unique
                 $existingUser = User::getOneByEmail($formData['email']);
                 if ($existingUser && $existingUser->getId() !== $user->getId()) {
                     $errors['email'] = "Neplatné údaje";
@@ -223,17 +231,22 @@ class AuthController extends BaseController
             $confirmPassword = $formData['confirm_password'] ?? null;
 
             if (!empty($newPassword)) {
-                if ($error = $this->validatePassword($newPassword, true)) {
+                if ($error = $this->validatePassword($newPassword, true, false)) {
                     $errors['new_password'] = $error;
                 }
 
-                if ($error = $this->validatePasswordConfirm($newPassword, $confirmPassword, true)) {
+                if ($error = $this->validatePasswordConfirm(
+                    $newPassword,
+                    $confirmPassword,
+                    true,
+                    false
+                )) {
                     $errors['confirm_password'] = $error;
                 }
 
                 if (empty($currentPassword)) {
                     $errors['current_password'] = "Aktuálne heslo je povinné pri zmene hesla";
-                } elseif ($currentPassword !== $user->getPassword()) {  // PRIAME POROVNANIE - BEZ HASHU
+                } elseif (!$user->checkPassword($currentPassword)) {
                     $errors['current_password'] = "Nesprávne aktuálne heslo";
                 }
             }
@@ -273,32 +286,39 @@ class AuthController extends BaseController
             return $this->redirect($this->url("auth.login"));
         }
 
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
         return $this->html(compact('user'), 'delete');
     }
 
     public function delete(Request $request): Response
     {
+        // Kontrola prihlásenia
         if (!($this->app->getAppUser()->isLoggedIn())) {
             return $this->redirect($this->url("auth.login"));
         }
 
         $id = (int)$request->value('id');
-
         $user = User::getOne($id);
 
         if (!$user) {
             return $this->redirect($this->url("auth.index"));
         }
 
-        $currentUser = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof \App\Models\User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $currentUser = $identity;
         if ($user->getId() !== $currentUser->getId()) {
-            // Ak chce zmenit ineho
             return $this->redirect($this->url("auth.index"));
         }
 
         if (!$request->hasValue('confirm') || $request->value('confirm') !== 'yes') {
-            return $this->html(compact('user'), 'delete');
+            return $this->redirect($this->url("auth.confirmDelete", ['id' => $id]));
         }
 
         $user->delete();
@@ -306,180 +326,4 @@ class AuthController extends BaseController
 
         return $this->redirect($this->url("auth.login"));
     }
-
-    ////////////////////////////////////////////////////////////Metody na validacie
-    private function validateFullName(?string $full_name, bool $required = false): ?string
-    {
-        if ($required && (empty($full_name) || trim($full_name) === '')) {
-            return "Neplatné údaje";
-        }
-
-        if (!empty($full_name) && trim($full_name) !== '') {
-            $trimmed = trim($full_name);
-            $trimmed = preg_replace('/\s+/', ' ', $trimmed);
-
-            if (strlen(str_replace(' ', '', $trimmed)) < 4) {
-                return "Neplatné údaje";
-            }
-        }
-
-        return null;
-    }
-
-    private function validatePhone(?string $phone, bool $required = true): ?string
-    {
-        if ($required && empty($phone)) {
-            return "Neplatné údaje";
-        }
-
-        if (!empty($phone)) {
-            $phone = trim($phone);
-            $clean_phone = preg_replace('/[^0-9]/', '', $phone);
-            $digit_count = strlen($clean_phone);
-
-            if ($digit_count < 9 || $digit_count > 15) {
-                return "Neplatné údaje";
-            }
-
-            if (!preg_match('/^[\d\s\-+()]+$/', $phone)) {
-                return "Neplatné údaje";
-            }
-        }
-
-        return null;
-    }
-    private function validateEmail(?string $email, bool $required = true, bool $checkUnique = true): ?string
-    {
-        if ($required && empty($email)) {
-            return "Neplatné údaje";
-        }
-
-        if (!empty($email)) {
-            $email = trim($email);
-
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return "Neplatné údaje";
-            } elseif ($checkUnique) {
-                // Kontrola, ci uz existuje pouzivatel s tymto mailom
-                $existing_user = User::getOneByEmail($email);
-                if ($existing_user) {
-                    return "Neplatné údaje";
-                }
-            }
-        }
-
-        return null;
-    }
-    private function validatePassword(?string $password, bool $required = true): ?string
-    {
-        if ($required && empty($password)) {
-            return "Neplatné údaje";
-        }
-
-        if (!empty($password)) {
-            if (strlen($password) < 8) {
-                return "Neplatné údaje";
-            }
-
-            if (!preg_match('/[A-Z]/', $password)) {
-                return "Neplatné údaje";
-            }
-
-            if (!preg_match('/[0-9]/', $password)) {
-                return "Neplatné údaje";
-            }
-        }
-        return null;
-    }
-
-    private function validatePasswordConfirm(?string $password, ?string $password_confirm,
-                                             bool $required = true): ?string
-    {
-        if ($required && empty($password_confirm)) {
-            return "Neplatné údaje";
-        }
-
-        if (!empty($password_confirm) && $password !== $password_confirm) {
-            return "Neplatné údaje";
-        }
-
-        return null;
-    }
-
-    private function validateTerms(?string $terms, bool $required = true): ?string
-    {
-        if ($required && (!isset($terms) || $terms !== 'on')) {
-            return "Musíte súhlasiť so spracovaním osobných údajov";
-        }
-
-        return null;
-    }
-    /*public function confirmDelete(Request $request): Response
-    {
-        // Kontrola, či používateľ je prihlásený
-        if (!($this->app->getAppUser()->isLoggedIn())) {
-            return $this->redirect($this->url("auth.login"));
-        }
-
-        $user = $this->app->getAuthenticator()->getUser();
-        return $this->html(compact('user'), 'delete');
-    }
-
-    public function delete(Request $request): Response
-    {
-        // Kontrola, či používateľ je prihlásený
-        if (!($this->app->getAppUser()->isLoggedIn())) {
-            return $this->redirect($this->url("auth.login"));
-        }
-
-        // Ak nebolo potvrdené, zobraz potvrdzovací formulár
-        if (!$request->hasValue('confirm') || $request->value('confirm') !== 'yes') {
-            $user = $this->app->getAuthenticator()->getUser();
-            return $this->html(compact('user'), 'delete');
-        }
-
-        // Ak je potvrdené, vykonaj zmazanie
-        $user = $this->app->getAuthenticator()->getUser();
-        $user->delete();
-
-        // Odhlásenie používateľa
-        $this->app->getAuthenticator()->logout();
-
-        // Presmerovanie na login
-        return $this->redirect($this->url("auth.login"));
-    }*/
-
-    /*public function update(Request $request): Response
-    {
-        // Bezpečnostná verzia - iba svoj účet
-        $user = $this->app->getAuthenticator()->getUser();
-
-        // Získaj ID z formulára pre kontrolu
-        $idFromForm = (int)$request->value('id');
-
-        // Kontrola, či používateľ nesnaží upravovať niekoho iného účet
-        if ($idFromForm !== $user->getId()) {
-            $error = "Nemáte oprávnenie upravovať tento účet.";
-            return $this->html(['user' => $user, 'error' => $error], 'edit');
-        }
-
-        $full_name = $request->value('full_name');
-
-        // Validácia
-        $errors = [];
-        if (empty($full_name)) {
-            $errors['full_name'] = "Meno a priezvisko je povinné.";
-        }
-
-        if (count($errors) > 0) {
-            return $this->html(['user' => $user, 'errors' => $errors], 'edit');
-        }
-
-        // Aktualizácia
-        $user->setFullname($full_name);
-        $user->save();
-
-        $message = "Účet bol úspešne upravený.";
-        return $this->html(['user' => $user, 'message' => $message], 'edit');
-    }*/
 }

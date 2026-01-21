@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\Reservation;
 use App\Models\Review;
 use App\Models\Barber;
+use App\Models\User;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
@@ -18,7 +19,11 @@ class ReviewController extends BaseController
 
     public function index(Request $request): Response
     {
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
 
         $reviews = Review::getAll(
             'user_id = ?',
@@ -40,7 +45,11 @@ class ReviewController extends BaseController
         $reservationId = (int) $request->value('reservation_id');
         $rating = (int) $request->value('rating');
 
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
         $reservation = Reservation::getOne($reservationId);
 
         $error = null;

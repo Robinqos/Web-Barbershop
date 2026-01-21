@@ -9,10 +9,11 @@ class Gallery extends Model
     protected int $id;
     protected ?int $barber_id = null;
     protected string $photo_path;
-    protected ?string $services = null;  // popis sluzieb
+    protected ?string $services = null;  // popis sluzby na fotke
     protected string $created_at;
-    protected bool $is_active = true;
 
+
+    //todo:odstranit is_active ak nebude potrebne
     public function getId(): int
     {
         return $this->id;
@@ -63,16 +64,6 @@ class Gallery extends Model
         $this->created_at = $created_at;
     }
 
-    public function isActive(): bool
-    {
-        return $this->is_active;
-    }
-
-    public function setIsActive(bool $is_active): void
-    {
-        $this->is_active = $is_active;
-    }
-
     public function getBarberName(): string
     {
         if ($this->barber_id === null) {
@@ -86,13 +77,9 @@ class Gallery extends Model
         return 'Neznámy barber';
     }
 
-    public static function getActiveItems(int $limit = 12): array
+    public static function getLatestItems(int $limit = 12): array
     {
-        return self::getAll('is_active = 1', [], 'created_at DESC', $limit);
+        return self::getAll(null, [], 'created_at DESC', $limit);
     }
 
-    public static function getByBarberId(int $barberId): array
-    {
-        return self::getAll('barber_id = ? AND is_active = 1', [$barberId], 'created_at DESC');
-    }
 }

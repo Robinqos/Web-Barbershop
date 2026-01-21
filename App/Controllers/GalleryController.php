@@ -17,14 +17,17 @@ class GalleryController extends BaseController
             return false;
         }
 
-        $userModel = $this->app->getAuthenticator()->getUser();
-        if (!$userModel) {
+        //ziskaj identitu
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+
+        // ci je user model
+        if (!$identity instanceof User) {
             return false;
         }
 
         // Iba barber/admin
-        return $userModel->getPermissions() === \App\Models\User::ROLE_BARBER ||
-            $userModel->getPermissions() === \App\Models\User::ROLE_ADMIN;
+        return $identity->getPermissions() === \App\Models\User::ROLE_BARBER ||
+            $identity->getPermissions() === \App\Models\User::ROLE_ADMIN;
     }
 
     public function index(Request $request): Response
@@ -38,7 +41,11 @@ class GalleryController extends BaseController
             return $this->redirect($this->url('home.index'));
         }
 
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
 
         if ($user->getPermissions() === User::ROLE_BARBER) {
             $barber = Barber::getByUserId($user->getId());
@@ -108,7 +115,6 @@ class GalleryController extends BaseController
         $galleryItem->setBarberId($barberId);
         $galleryItem->setPhotoPath($photoPath);
         $galleryItem->setServices($services ?: null);
-        $galleryItem->setIsActive(true);
         $galleryItem->setCreatedAt(date('Y-m-d H:i:s'));
         $galleryItem->save();
 
@@ -128,7 +134,11 @@ class GalleryController extends BaseController
             return $this->redirect($this->url('home.index'));
         }
 
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+        $user = $identity;
 
         if ($user->getPermissions() === User::ROLE_BARBER) {
             $barber = Barber::getByUserId($user->getId());

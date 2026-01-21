@@ -31,7 +31,13 @@ class ReservationController extends BaseController
             return $this->redirect($this->url("auth.login"));
         }
 
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+
+        $user = $identity;
         $reservations = \App\Models\Reservation::getAll(
             'user_id = ?',
             [$user->getId()],
@@ -241,7 +247,13 @@ class ReservationController extends BaseController
             return $this->redirect($this->url("auth.login"));
         }
 
-        $user = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url("auth.login"));
+        }
+
+        $user = $identity;
 
         // kontrola ci su jeho
         if ($reservation->getUserId() !== $user->getId()) {

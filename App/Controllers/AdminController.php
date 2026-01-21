@@ -9,72 +9,57 @@ use App\Models\User;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use App\Traits\ValidationTrait;
 
-/**
- * Class AdminController
- *
- * This controller manages admin-related actions within the application.It extends the base controller functionality
- * provided by BaseController.
- *
- * @package App\Controllers
- */
+
 class AdminController extends BaseController
 {
-    //todo:mozno do traitu dat spolocne funkcie
-    /**
-     * Authorizes actions in this controller.
-     *
-     * This method checks if the user is logged in, allowing or denying access to specific actions based
-     * on the authentication state.
-     *
-     * @param string $action The name of the action to authorize.
-     * @return bool Returns true if the user is logged in; false otherwise.
-     */
+    use ValidationTrait;
+
     public function authorize(Request $request, string $action): bool
     {
         if (!$this->user->isLoggedIn()) {
             return false;
         }
 
-        $userModel = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
 
-        if (!$userModel) {
+        if (!$identity instanceof User) {
             return false;
         }
+
         //admin = 2
-        return $userModel->getPermissions() >= User::ROLE_ADMIN;
+        return $identity->getPermissions() >= User::ROLE_ADMIN;
     }
 
-    /**
-     * Displays the index page of the admin panel.
-     *
-     * This action requires authorization. It returns an HTML response for the admin dashboard or main page.
-     *
-     * @return Response Returns a response object containing the rendered HTML.
-     */
     public function index(Request $request): Response
     {
-        $userModel = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof User) {
+            return $this->redirect($this->url('home.index'));
+        }
+
+        $userModel = $identity; // teraz je user model
 
         $today = date('Y-m-d');
 
-        $todayReservations = \App\Models\Reservation::getAll(
+        $todayReservations = Reservation::getAll(
             'DATE(reservation_date) = ? AND status = ?',
             [$today, 'pending'],
             'reservation_date ASC'
         );
 
-        $upcomingReservations = \App\Models\Reservation::getAll(
+        $upcomingReservations = Reservation::getAll(
             'reservation_date > NOW() AND status = ?',
             ['pending'],
             'reservation_date ASC',
             10
         );
 
-        $totalReservations = count(\App\Models\Reservation::getAll());
-        $totalServices = count(\App\Models\Service::getAll());
-        $totalUsers = count(\App\Models\User::getAll());
-        $totalBarbers = count(\App\Models\User::getAll('permissions = ?', [User::ROLE_BARBER]));
+        $totalReservations = count(Reservation::getAll());
+        $totalServices = count(Service::getAll());
+        $totalUsers = count(User::getAll());
+        $totalBarbers = count(User::getAll('permissions = ?', [User::ROLE_BARBER]));
 
         return $this->html([
             'user' => $userModel,
@@ -143,7 +128,7 @@ class AdminController extends BaseController
 
         $whereClause = $where ? implode(' AND ', $where) : null;
 
-        $reservations = \App\Models\Reservation::getAll(
+        $reservations = Reservation::getAll(
             $whereClause,
             $params,
             'reservation_date ASC'
@@ -215,7 +200,7 @@ class AdminController extends BaseController
                 }
                 break;
             case 'guest_phone':
-                $validationError = $this->validatePhone($value, true);
+                $validationError = $this->validatePhone($value, true,true);
                 if ($validationError) {
                     $errors[] = str_replace('Telefónne číslo', 'Telefónne číslo hosťa', $validationError);
                 } else {
@@ -224,7 +209,7 @@ class AdminController extends BaseController
                 break;
 
             case 'guest_name':
-                $validationError = $this->validateFullName($value, true);
+                $validationError = $this->validateFullName($value, true,true);
                 if ($validationError) {
                     $errors[] = str_replace('Meno a priezvisko', 'Meno hosťa', $validationError);
                 } else {
@@ -539,19 +524,19 @@ class AdminController extends BaseController
             $errors = [];
 
             // Validacie
-            if ($error = $this->validateFullName($request->value('name'), true)) {
+            if ($error = $this->validateFullName($request->value('name'), true, true)) {
                 $errors['name'] = $error;
             }
 
-            if ($error = $this->validateEmailForAdmin($request->value('email'), 0, true)) {
+            if ($error = $this->validateEmail($request->value('email'), true, true, 0, true)) {
                 $errors['email'] = $error;
             }
 
-            if ($error = $this->validatePhone($request->value('phone'), true)) {
+            if ($error = $this->validatePhone($request->value('phone'), true, true)) {
                 $errors['phone'] = $error;
             }
 
-            if ($error = $this->validatePassword($request->value('password'), true)) {
+            if ($error = $this->validatePassword($request->value('password'), true, true)) {
                 $errors['password'] = $error;
             }
 
@@ -574,6 +559,16 @@ class AdminController extends BaseController
             $user->setCreatedAt(date('Y-m-d H:i:s'));
             $user->save();
 
+            if ($permissions === User::ROLE_BARBER) {
+                $barber = new Barber();
+                $barber->setUserId($user->getId());
+                $barber->setBio('');
+                $barber->setPhotoPath(null);
+                $barber->setIsActive(1);
+                $barber->setCreatedAt(date('Y-m-d H:i:s'));
+                $barber->save();
+            }
+
             return $this->redirect($this->url('admin.users'));
         }
 
@@ -586,7 +581,13 @@ class AdminController extends BaseController
         $user = User::getOne($id);
 
         // nevymaz sameho seba
-        $currentUser = $this->app->getAuthenticator()->getUser();
+        $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+        if (!$identity instanceof \App\Models\User) {
+            return $this->redirect($this->url('admin.users'));
+        }
+
+        $currentUser = $identity;
+
         if ($currentUser && $currentUser->getId() === $id) {
             return $this->redirect($this->url('admin.users'));
         }
@@ -599,8 +600,12 @@ class AdminController extends BaseController
             );
 
             if ($activeReservations > 0) {
-                //todo:mozno flash message
                 return $this->redirect($this->url('admin.users'));
+            }
+
+            $barber = Barber::getByUserId($id);
+            if ($barber) {
+                $barber->delete();
             }
 
             $user->delete();
@@ -621,7 +626,7 @@ class AdminController extends BaseController
 
         switch ($field) {
             case 'name':
-                $validationError = $this->validateFullName($value, true);
+                $validationError = $this->validateFullName($value, true, true);
                 if ($validationError) {
                     $errors[] = $validationError;
                 } else {
@@ -631,7 +636,7 @@ class AdminController extends BaseController
                 break;
 
             case 'email':
-                $validationError = $this->validateEmailForAdmin($value, $id, true);
+                $validationError = $this->validateEmail($value, true, true, $id, true);
                 if ($validationError) {
                     $errors[] = $validationError;
                 } else {
@@ -641,7 +646,7 @@ class AdminController extends BaseController
                 break;
 
             case 'phone':
-                $validationError = $this->validatePhone($value, true);
+                $validationError = $this->validatePhone($value, true, true);
                 if ($validationError) {
                     $errors[] = $validationError;
                 } else {
@@ -655,14 +660,20 @@ class AdminController extends BaseController
                 if (!in_array((int)$value, $allowedPermissions)) {
                     $errors[] = 'Neplatná rola. Povolené hodnoty: 0 (Zákazník), 1 (Barber), 2 (Admin)';
                 } else {
-                    $user->setPermissions((int)$value);
+                    $oldPermissions = $user->getPermissions();
+                    $newPermissions = (int)$value;
+
+                    $user->setPermissions($newPermissions);
+                    //aktualizuj barber zaznam
+                    $this->handleBarberRecordUpdate($user, $oldPermissions, $newPermissions);
+
                     $roleMap = [
                         User::ROLE_CUSTOMER => 'Zákazník',
                         User::ROLE_BARBER => 'Barber',
                         User::ROLE_ADMIN => 'Admin'
                     ];
-                    $displayValue = $roleMap[(int)$value] ?? 'Neznáma';
-                    $badgeClass = $this->getUserBadgeClass((int)$value);
+                    $displayValue = $roleMap[$newPermissions] ?? 'Neznáma';
+                    $badgeClass = $this->getUserBadgeClass($newPermissions);
                 }
                 break;
 
@@ -688,6 +699,35 @@ class AdminController extends BaseController
 
         return $this->json($response);
     }
+    private function handleBarberRecordUpdate(User $user, int $oldPermissions, int $newPermissions): void
+    {
+        // Ak sa zmeni rola na barbera
+        if ($newPermissions === User::ROLE_BARBER && $oldPermissions !== User::ROLE_BARBER) {
+            $existingBarber = Barber::getByUserId($user->getId());
+
+            if (!$existingBarber) {
+                $barber = new Barber();
+                $barber->setUserId($user->getId());
+                $barber->setBio('');
+                $barber->setPhotoPath(null);
+                $barber->setIsActive(1);
+                $barber->setCreatedAt(date('Y-m-d H:i:s'));
+                $barber->save();
+            } else {
+                $existingBarber->setIsActive(1);
+                $existingBarber->save();
+            }
+        }
+
+        if ($oldPermissions === User::ROLE_BARBER && $newPermissions !== User::ROLE_BARBER) {
+            $existingBarber = Barber::getByUserId($user->getId());
+
+            if ($existingBarber) {
+                $existingBarber->setIsActive(0);
+                $existingBarber->save();
+            }
+        }
+    }
     /////////////////////////////////////////////////BARBERS////////////////////////////////////////////////////
 
     public function barbers(Request $request): Response
@@ -701,20 +741,19 @@ class AdminController extends BaseController
         if ($request->isPost()) {
             $errors = [];
 
-            // Validácie textových polí (tvoje pôvodné)
-            if ($error = $this->validateFullName($request->value('name'), true)) {
+            if ($error = $this->validateFullName($request->value('name'), true, true)) {
                 $errors['name'] = $error;
             }
 
-            if ($error = $this->validateEmailForAdmin($request->value('email'), 0, true)) {
+            if ($error = $this->validateEmail($request->value('email'), true, true, 0, true)) {
                 $errors['email'] = $error;
             }
 
-            if ($error = $this->validatePhone($request->value('phone'), true)) {
+            if ($error = $this->validatePhone($request->value('phone'), true, true)) {
                 $errors['phone'] = $error;
             }
 
-            if ($error = $this->validatePassword($request->value('password'), true)) {
+            if ($error = $this->validatePassword($request->value('password'), true, true)) {
                 $errors['password'] = $error;
             }
 
@@ -786,7 +825,7 @@ class AdminController extends BaseController
                 return $this->html(['errors' => $errors], 'barber-create');
             }
 
-            // Vytvorenie používateľa (tvoja pôvodná logika)
+            // vytvor user
             $user = new User();
             $user->setFullName($request->value('name'));
             $user->setEmail($request->value('email'));
@@ -796,11 +835,11 @@ class AdminController extends BaseController
             $user->setCreatedAt(date('Y-m-d H:i:s'));
             $user->save();
 
-            // Vytvorenie barbera
+            // vytvor barbera
             $barber = new Barber();
             $barber->setUserId($user->getId());
             $barber->setBio($bio);
-            $barber->setPhotoPath($photoPath); // Uložíme cestu k fotke
+            $barber->setPhotoPath($photoPath);
             $barber->setIsActive((bool)$request->value('is_active', true));
             $barber->setCreatedAt(date('Y-m-d H:i:s'));
             $barber->save();
@@ -815,7 +854,6 @@ class AdminController extends BaseController
         $barber = \App\Models\Barber::getOne($id);
 
         if ($barber) {
-            // CASCADE delete - vymaže aj používateľa
             $user = User::getOne($barber->getUserId());
             if ($user) {
                 $user->delete();
@@ -891,7 +929,7 @@ class AdminController extends BaseController
 
                 switch ($field) {
                     case 'name':
-                        $validationError = $this->validateFullName($value, true);
+                        $validationError = $this->validateFullName($value, true, true);
                         if ($validationError) {
                             $errors[] = $validationError;
                         } else {
@@ -901,7 +939,7 @@ class AdminController extends BaseController
                         break;
 
                     case 'email':
-                        $validationError = $this->validateEmailForAdmin($value, $userId, true);
+                        $validationError = $this->validateEmail($value, true, true, $userId, true);
                         if ($validationError) {
                             $errors[] = $validationError;
                         } else {
@@ -911,7 +949,7 @@ class AdminController extends BaseController
                         break;
 
                     case 'phone':
-                        $validationError = $this->validatePhone($value, true);
+                        $validationError = $this->validatePhone($value, true, true);
                         if ($validationError) {
                             $errors[] = $validationError;
                         } else {
@@ -1014,102 +1052,5 @@ class AdminController extends BaseController
             $barber->save();
         }
         return $this->redirect($this->url('admin.barbers'));
-    }
-    ///////////////////////////////////////////////////////////VALIDACIE
-
-    private function validateFullName(?string $full_name, bool $required = false): ?string
-    {
-        if ($required && (empty($full_name) || trim($full_name) === '')) {
-            return "Meno a priezvisko je povinné";
-        }
-
-        if (!empty($full_name) && trim($full_name) !== '') {
-            $trimmed = trim($full_name);
-            $trimmed = preg_replace('/\s+/', ' ', $trimmed);
-
-            if (strlen(str_replace(' ', '', $trimmed)) < 4) {
-                return "Meno a priezvisko musí obsahovať aspoň 4 znaky (bez medzier)";
-            }
-        }
-
-        return null;
-    }
-
-    private function validatePhone(?string $phone, bool $required = true): ?string
-    {
-        if ($required && empty($phone)) {
-            return "Telefónne číslo je povinné";
-        }
-
-        if (!empty($phone)) {
-            $phone = trim($phone);
-            $clean_phone = preg_replace('/[^0-9]/', '', $phone);
-            $digit_count = strlen($clean_phone);
-
-            if ($digit_count < 9 || $digit_count > 15) {
-                return "Telefónne číslo musí obsahovať 9 až 15 číslic";
-            }
-
-            if (!preg_match('/^[\d\s\-+()]+$/', $phone)) {
-                return "Telefónne číslo obsahuje nepovolené znaky";
-            }
-        }
-
-        return null;
-    }
-
-    private function validateEmailForAdmin(?string $email, int $userId, bool $required = true): ?string
-    {
-        if ($required && empty($email)) {
-            return "Email je povinný";
-        }
-
-        if (!empty($email)) {
-            $email = trim($email);
-
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return "Neplatný formát emailu";
-            } else {
-                $existingUser = User::getOneByEmail($email);
-                if ($existingUser && $existingUser->getId() !== $userId) {
-                    return "Email už je používaný iným používateľom";
-                }
-            }
-        }
-
-        return null;
-    }
-    private function validatePassword(?string $password, bool $required = true): ?string
-    {
-        if ($required && empty($password)) {
-            return "Heslo je povinné";
-        }
-
-        if (!empty($password)) {
-            if (strlen($password) < 8) {
-                return "Heslo musí mať aspoň 8 znakov";
-            }
-
-            if (!preg_match('/[A-Z]/', $password)) {
-                return "Heslo musí obsahovať aspoň jedno veľké písmeno";
-            }
-
-            if (!preg_match('/[0-9]/', $password)) {
-                return "Heslo musí obsahovať aspoň jednu číslicu";
-            }
-        }
-
-        return null;
-    }
-
-    private function getUserBadgeClass($permissions)
-    {
-        $badges = [
-            User::ROLE_CUSTOMER => 'info',
-            User::ROLE_BARBER => 'primary',
-            User::ROLE_ADMIN => 'warning'
-        ];
-
-        return $badges[$permissions] ?? 'secondary';
     }
 }

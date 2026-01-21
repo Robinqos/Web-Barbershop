@@ -102,14 +102,19 @@ class HomeController extends BaseController
         }
 
         // galeria
-        $galleryItems = Gallery::getActiveItems(); // ak chceme obmedzit na nejaky pocet, tak do parametra dat
+        $galleryItems = Gallery::getLatestItems(); // ak chceme obmedzit na nejaky pocet, tak do parametra dat
         $loggedUser = null;
         $showUploadForm = false;
         $allBarbersForAdmin = [];
         $galleryItemsData = [];
 
         if ($this->user->isLoggedIn()) {
-            $loggedUser = $this->app->getAuthenticator()->getUser();
+
+            $identity = $this->app->getAuthenticator()->getUser()->getIdentity();
+            if (!$identity instanceof User) {
+                return $this->redirect($this->url("auth.login"));
+            }
+            $loggedUser = $identity;
 
             // Kontrola, ci sa ma zobrazit formular
             if ($loggedUser->getPermissions() === User::ROLE_ADMIN) {
